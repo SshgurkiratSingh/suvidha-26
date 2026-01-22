@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: suvidha-backend
+    runtime: node
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_JWT_SECRET
+        generateValue: true
+      - key: DEFAULT_OTP
+        value: "123456"
+      - key: PG_SSL_REJECT_UNAUTHORIZED
+        value: "false"
+      - key: NODE_TLS_REJECT_UNAUTHORIZED
+        value: "0"
+      - key: PORT
+        value: "4000"
+      - key: HOST
+        value: "0.0.0.0"
+    healthCheckPath: /health

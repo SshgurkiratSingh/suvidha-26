@@ -22,9 +22,25 @@ const AdminDashboard = () => {
   const [showGrievanceModal, setShowGrievanceModal] = useState(false);
 
   // Dropdown options
-  const departments = ['ELECTRICITY', 'WATER', 'GAS', 'SANITATION', 'MUNICIPAL'];
-  const serviceTypes = ['NEW_CONNECTION', 'LOAD_CHANGE', 'NAME_CHANGE', 'CONNECTION_REMOVAL', 'REFILL', 'GRIEVANCE', 'SCHEME_APPLICATION', 'WATER_QUALITY_TEST', 'BILL_PAYMENT'];
-  
+  const departments = [
+    "ELECTRICITY",
+    "WATER",
+    "GAS",
+    "SANITATION",
+    "MUNICIPAL",
+  ];
+  const serviceTypes = [
+    "NEW_CONNECTION",
+    "LOAD_CHANGE",
+    "NAME_CHANGE",
+    "CONNECTION_REMOVAL",
+    "REFILL",
+    "GRIEVANCE",
+    "SCHEME_APPLICATION",
+    "WATER_QUALITY_TEST",
+    "BILL_PAYMENT",
+  ];
+
   const [customDepartment, setCustomDepartment] = useState(false);
   const [customServiceType, setCustomServiceType] = useState(false);
 
@@ -408,17 +424,22 @@ const AdminDashboard = () => {
                     className="gov-input"
                     value={schemeForm.department}
                     onChange={(e) => {
-                      if (e.target.value === 'CUSTOM') {
+                      if (e.target.value === "CUSTOM") {
                         setCustomDepartment(true);
-                        setSchemeForm({ ...schemeForm, department: '' });
+                        setSchemeForm({ ...schemeForm, department: "" });
                       } else {
                         setCustomDepartment(false);
-                        setSchemeForm({ ...schemeForm, department: e.target.value });
+                        setSchemeForm({
+                          ...schemeForm,
+                          department: e.target.value,
+                        });
                       }
                     }}
                   >
-                    {departments.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
                     ))}
                     <option value="CUSTOM">Custom (Enter Manually)</option>
                   </select>
@@ -428,7 +449,10 @@ const AdminDashboard = () => {
                       placeholder="Enter custom department"
                       value={schemeForm.department}
                       onChange={(e) =>
-                        setSchemeForm({ ...schemeForm, department: e.target.value })
+                        setSchemeForm({
+                          ...schemeForm,
+                          department: e.target.value,
+                        })
                       }
                     />
                   )}
@@ -475,8 +499,10 @@ const AdminDashboard = () => {
                     })
                   }
                 >
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
                   ))}
                 </select>
                 <textarea
@@ -530,8 +556,10 @@ const AdminDashboard = () => {
                     setBillForm({ ...billForm, department: e.target.value })
                   }
                 >
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
                   ))}
                 </select>
                 <input
@@ -604,8 +632,10 @@ const AdminDashboard = () => {
                     })
                   }
                 >
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
                   ))}
                 </select>
                 <input
@@ -663,8 +693,10 @@ const AdminDashboard = () => {
                     })
                   }
                 >
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
                   ))}
                 </select>
                 <select
@@ -677,8 +709,10 @@ const AdminDashboard = () => {
                     })
                   }
                 >
-                  {serviceTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
+                  {serviceTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -708,20 +742,29 @@ const AdminDashboard = () => {
                     className="gov-input"
                     value={caseForm.department}
                     onChange={(e) => {
-                      if (e.target.value === 'CUSTOM') {
+                      if (e.target.value === "CUSTOM") {
                         setCustomServiceType(false); // Reset service type custom
-                        setCaseForm({ ...caseForm, department: '', serviceType: '' });
+                        setCaseForm({
+                          ...caseForm,
+                          department: "",
+                          serviceType: "",
+                        });
                       } else {
-                        setCaseForm({ ...caseForm, department: e.target.value });
+                        setCaseForm({
+                          ...caseForm,
+                          department: e.target.value,
+                        });
                       }
                     }}
                   >
-                    {departments.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
                     ))}
                     <option value="CUSTOM">Custom (Enter Manually)</option>
                   </select>
-                  {caseForm.department === '' && (
+                  {caseForm.department === "" && (
                     <input
                       className="gov-input mt-2"
                       placeholder="Enter custom department"
@@ -735,19 +778,24 @@ const AdminDashboard = () => {
                 <div>
                   <select
                     className="gov-input"
-                    value={customServiceType ? 'CUSTOM' : caseForm.serviceType}
+                    value={customServiceType ? "CUSTOM" : caseForm.serviceType}
                     onChange={(e) => {
-                      if (e.target.value === 'CUSTOM') {
+                      if (e.target.value === "CUSTOM") {
                         setCustomServiceType(true);
-                        setCaseForm({ ...caseForm, serviceType: '' });
+                        setCaseForm({ ...caseForm, serviceType: "" });
                       } else {
                         setCustomServiceType(false);
-                        setCaseForm({ ...caseForm, serviceType: e.target.value });
+                        setCaseForm({
+                          ...caseForm,
+                          serviceType: e.target.value,
+                        });
                       }
                     }}
                   >
-                    {serviceTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
+                    {serviceTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
                     ))}
                     <option value="CUSTOM">Custom (Enter Manually)</option>
                   </select>
@@ -757,7 +805,10 @@ const AdminDashboard = () => {
                       placeholder="Enter custom service type"
                       value={caseForm.serviceType}
                       onChange={(e) =>
-                        setCaseForm({ ...caseForm, serviceType: e.target.value })
+                        setCaseForm({
+                          ...caseForm,
+                          serviceType: e.target.value,
+                        })
                       }
                     />
                   )}

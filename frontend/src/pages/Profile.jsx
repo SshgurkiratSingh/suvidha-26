@@ -54,14 +54,14 @@ const Profile = () => {
         mobileNumber: updated.mobileNumber || "",
         email: updated.email || "",
       });
-      
+
       // Refresh user data in AuthContext
       refreshUser({
         fullName: updated.fullName,
         mobileNumber: updated.mobileNumber,
         email: updated.email,
       });
-      
+
       success("Profile updated");
     } catch (err) {
       error(err.message || "Failed to update profile");

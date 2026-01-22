@@ -14,12 +14,14 @@ const { prisma } = require("./prisma");
 const app = express();
 
 // Enable CORS with explicit configuration
-app.use(cors({
-  origin: '*', // Allow all origins (for development)
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "*", // Allow all origins (for development)
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get("/health", (_req, res) => {

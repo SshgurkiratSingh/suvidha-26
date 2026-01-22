@@ -46,7 +46,7 @@ const NewConnection = () => {
   /* ------------------ LOAD USER DATA ------------------ */
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         name: user.fullName || "",
         phone: user.mobileNumber || "",
@@ -62,7 +62,9 @@ const NewConnection = () => {
       setFormData(parsedDraft);
       // Pre-populate districts if state exists in draft
       if (parsedDraft.state) {
-        const found = statesData.states.find((s) => s.state === parsedDraft.state);
+        const found = statesData.states.find(
+          (s) => s.state === parsedDraft.state
+        );
         if (found) setDistricts(found.districts);
       }
     }
@@ -70,7 +72,10 @@ const NewConnection = () => {
 
   /* ------------------ SAVE DRAFT ------------------ */
   const saveDraft = () => {
-    localStorage.setItem("electricity_new_connection_draft", JSON.stringify(formData));
+    localStorage.setItem(
+      "electricity_new_connection_draft",
+      JSON.stringify(formData)
+    );
     notify.success("Draft saved successfully");
   };
 
@@ -115,7 +120,7 @@ const NewConnection = () => {
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
-      
+
       // Create application via API
       const applicationData = {
         department: "ELECTRICITY",
@@ -141,7 +146,7 @@ const NewConnection = () => {
       };
 
       const response = await applicationsAPI.create(applicationData);
-      
+
       // Upload documents if any
       if (formData.documents && Object.keys(formData.documents).length > 0) {
         for (const [docType, docFile] of Object.entries(formData.documents)) {
@@ -157,7 +162,9 @@ const NewConnection = () => {
       localStorage.removeItem("electricity_new_connection_draft");
       notify.success("Application submitted successfully!");
     } catch (error) {
-      notify.error(error.message || "Failed to submit application. Please try again.");
+      notify.error(
+        error.message || "Failed to submit application. Please try again."
+      );
       console.error("Submission error:", error);
     } finally {
       setSubmitting(false);
@@ -171,7 +178,6 @@ const NewConnection = () => {
   return (
     <div className="min-h-screen bg-[#F4F7FA] py-10">
       <div className="max-w-4xl mx-auto px-6">
-        
         {/* HEADER */}
         <div className="mb-8 text-left">
           <h1 className="text-4xl font-extrabold text-[#0A3D62] font-poppins tracking-tight">
@@ -200,21 +206,53 @@ const NewConnection = () => {
             {/* STEP 1: APPLICANT DETAILS */}
             {step === 0 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">Applicant Details</h2>
+                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">
+                  Applicant Details
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name (As per Aadhaar)</label>
-                    <input name="name" className="gov-input" onChange={handleChange} value={formData.name} placeholder="e.g. Rajesh Kumar" />
-                    {errors.name && <p className="text-red-500 text-xs mt-1 font-medium">{errors.name}</p>}
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Full Name (As per Aadhaar)
+                    </label>
+                    <input
+                      name="name"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.name}
+                      placeholder="e.g. Rajesh Kumar"
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1 font-medium">
+                        {errors.name}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Mobile Number</label>
-                    <input disabled className="gov-input bg-gray-50 text-gray-500" value={formData.phone} />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Mobile Number
+                    </label>
+                    <input
+                      disabled
+                      className="gov-input bg-gray-50 text-gray-500"
+                      value={formData.phone}
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Aadhaar Number</label>
-                    <input name="aadhaar" className="gov-input" onChange={handleChange} value={formData.aadhaar} placeholder="12 Digit UID" />
-                    {errors.aadhaar && <p className="text-red-500 text-xs mt-1 font-medium">{errors.aadhaar}</p>}
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Aadhaar Number
+                    </label>
+                    <input
+                      name="aadhaar"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.aadhaar}
+                      placeholder="12 Digit UID"
+                    />
+                    {errors.aadhaar && (
+                      <p className="text-red-500 text-xs mt-1 font-medium">
+                        {errors.aadhaar}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -223,39 +261,79 @@ const NewConnection = () => {
             {/* STEP 2: ADDRESS & PROPERTY */}
             {step === 1 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">Address & Property Details</h2>
+                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">
+                  Address & Property Details
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
-                    <select className="gov-input" value={formData.state} onChange={handleStateChange}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      State
+                    </label>
+                    <select
+                      className="gov-input"
+                      value={formData.state}
+                      onChange={handleStateChange}
+                    >
                       <option value="">Select State</option>
                       {statesData.states.map((s) => (
-                        <option key={s.state} value={s.state}>{s.state}</option>
+                        <option key={s.state} value={s.state}>
+                          {s.state}
+                        </option>
                       ))}
                     </select>
-                    {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
+                    {errors.state && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.state}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">District</label>
-                    <select 
-                      className="gov-input" 
-                      value={formData.district} 
-                      onChange={(e) => setFormData({...formData, district: e.target.value})}
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      District
+                    </label>
+                    <select
+                      className="gov-input"
+                      value={formData.district}
+                      onChange={(e) =>
+                        setFormData({ ...formData, district: e.target.value })
+                      }
                       disabled={!formData.state}
                     >
-                      <option value="">{formData.state ? "Select District" : "Choose State First"}</option>
+                      <option value="">
+                        {formData.state
+                          ? "Select District"
+                          : "Choose State First"}
+                      </option>
                       {districts.map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Full Address</label>
-                    <textarea name="address" rows="3" className="gov-input" onChange={handleChange} value={formData.address} placeholder="House/Flat No, Landmark, Street..." />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Full Address
+                    </label>
+                    <textarea
+                      name="address"
+                      rows="3"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.address}
+                      placeholder="House/Flat No, Landmark, Street..."
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Property Type</label>
-                    <select name="propertyType" className="gov-input" onChange={handleChange} value={formData.propertyType}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Property Type
+                    </label>
+                    <select
+                      name="propertyType"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.propertyType}
+                    >
                       <option value="">Select Type</option>
                       <option>Independent House</option>
                       <option>Apartment/Flat</option>
@@ -269,24 +347,50 @@ const NewConnection = () => {
             {/* STEP 3: TECHNICAL */}
             {step === 2 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">Connection Details</h2>
+                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">
+                  Connection Details
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Load (kW)</label>
-                    <input name="load" type="number" className="gov-input" onChange={handleChange} value={formData.load} />
-                    {errors.load && <p className="text-red-500 text-xs mt-1">{errors.load}</p>}
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Load (kW)
+                    </label>
+                    <input
+                      name="load"
+                      type="number"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.load}
+                    />
+                    {errors.load && (
+                      <p className="text-red-500 text-xs mt-1">{errors.load}</p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Phase</label>
-                    <select name="phase" className="gov-input" onChange={handleChange} value={formData.phase}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Phase
+                    </label>
+                    <select
+                      name="phase"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.phase}
+                    >
                       <option value="">Select</option>
                       <option>Single Phase</option>
                       <option>Three Phase</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Purpose</label>
-                    <select name="purpose" className="gov-input" onChange={handleChange} value={formData.purpose}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Purpose
+                    </label>
+                    <select
+                      name="purpose"
+                      className="gov-input"
+                      onChange={handleChange}
+                      value={formData.purpose}
+                    >
                       <option value="">Select</option>
                       <option>Domestic</option>
                       <option>Commercial</option>
@@ -299,26 +403,69 @@ const NewConnection = () => {
             {/* STEP 4: DOCUMENT UPLOAD */}
             {step === 3 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">Upload Documents</h2>
-                <p className="text-gray-500 text-sm">Upload Proof of Identity and Proof of Ownership (Max 5MB)</p>
-                <DocumentUpload onChange={(docs) => setFormData({ ...formData, documents: docs })} />
+                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">
+                  Upload Documents
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  Upload Proof of Identity and Proof of Ownership (Max 5MB)
+                </p>
+                <DocumentUpload
+                  onChange={(docs) =>
+                    setFormData({ ...formData, documents: docs })
+                  }
+                />
               </div>
             )}
 
             {/* STEP 5: REVIEW */}
             {step === 4 && !applicationNo && (
               <div className="space-y-6 text-left">
-                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">Final Review</h2>
+                <h2 className="text-2xl font-bold text-[#0A3D62] border-b pb-4">
+                  Final Review
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-xl border border-gray-200">
-                  <div><span className="text-gray-500 block text-xs uppercase">Full Name</span><p className="font-semibold">{formData.name}</p></div>
-                  <div><span className="text-gray-500 block text-xs uppercase">Aadhaar</span><p className="font-semibold">{formData.aadhaar}</p></div>
-                  <div><span className="text-gray-500 block text-xs uppercase">State/District</span><p className="font-semibold">{formData.state}, {formData.district}</p></div>
-                  <div><span className="text-gray-500 block text-xs uppercase">Connection</span><p className="font-semibold">{formData.load} kW / {formData.phase}</p></div>
-                  <div className="md:col-span-2"><span className="text-gray-500 block text-xs uppercase">Address</span><p className="font-semibold">{formData.address}</p></div>
+                  <div>
+                    <span className="text-gray-500 block text-xs uppercase">
+                      Full Name
+                    </span>
+                    <p className="font-semibold">{formData.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block text-xs uppercase">
+                      Aadhaar
+                    </span>
+                    <p className="font-semibold">{formData.aadhaar}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block text-xs uppercase">
+                      State/District
+                    </span>
+                    <p className="font-semibold">
+                      {formData.state}, {formData.district}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block text-xs uppercase">
+                      Connection
+                    </span>
+                    <p className="font-semibold">
+                      {formData.load} kW / {formData.phase}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="text-gray-500 block text-xs uppercase">
+                      Address
+                    </span>
+                    <p className="font-semibold">{formData.address}</p>
+                  </div>
                 </div>
                 <label className="flex items-start gap-3 mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100 cursor-pointer">
                   <input type="checkbox" className="mt-1 w-4 h-4" />
-                  <span className="text-sm text-gray-700">I solemnly declare that the information provided is accurate. Any discrepancy may lead to immediate rejection of the connection.</span>
+                  <span className="text-sm text-gray-700">
+                    I solemnly declare that the information provided is
+                    accurate. Any discrepancy may lead to immediate rejection of
+                    the connection.
+                  </span>
                 </label>
               </div>
             )}
@@ -327,15 +474,34 @@ const NewConnection = () => {
             {applicationNo && (
               <div className="text-center py-10">
                 <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-10 w-10"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800">Application Submitted</h2>
-                <p className="text-gray-500 mt-2">Your electricity connection application has been received.</p>
+                <h2 className="text-3xl font-bold text-gray-800">
+                  Application Submitted
+                </h2>
+                <p className="text-gray-500 mt-2">
+                  Your electricity connection application has been received.
+                </p>
                 <div className="mt-8 p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 inline-block">
-                  <p className="text-sm text-gray-500 uppercase tracking-widest">Application ID</p>
-                  <p className="font-mono text-2xl font-bold text-[#0A3D62] mt-1 break-all">{applicationNo}</p>
+                  <p className="text-sm text-gray-500 uppercase tracking-widest">
+                    Application ID
+                  </p>
+                  <p className="font-mono text-2xl font-bold text-[#0A3D62] mt-1 break-all">
+                    {applicationNo}
+                  </p>
                 </div>
                 <div className="mt-8 flex gap-4 justify-center">
                   <button
@@ -359,15 +525,22 @@ const NewConnection = () => {
         {/* FOOTER BUTTONS */}
         {!applicationNo && (
           <div className="flex justify-between mt-8">
-            <button 
-              onClick={prevStep} 
+            <button
+              onClick={prevStep}
               disabled={step === 0}
-              className={`px-8 py-3 rounded-xl font-bold transition-all ${step === 0 ? 'invisible' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
+              className={`px-8 py-3 rounded-xl font-bold transition-all ${
+                step === 0
+                  ? "invisible"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
             >
               Back
             </button>
             <div className="flex gap-4">
-              <button onClick={saveDraft} className="text-gray-500 font-semibold px-4 hover:text-[#0A3D62] transition-colors">
+              <button
+                onClick={saveDraft}
+                className="text-gray-500 font-semibold px-4 hover:text-[#0A3D62] transition-colors"
+              >
                 Save Draft
               </button>
               {step < 4 ? (
@@ -375,8 +548,8 @@ const NewConnection = () => {
                   Next Step
                 </button>
               ) : (
-                <button 
-                  onClick={handleSubmit} 
+                <button
+                  onClick={handleSubmit}
                   disabled={submitting}
                   className="gov-button-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >

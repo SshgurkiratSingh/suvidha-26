@@ -50,11 +50,13 @@ Base URL: `http://localhost:4000`
 ### Authentication Headers
 
 #### Citizen Endpoints
+
 ```
 Authorization: Bearer <citizen_token>
 ```
 
 #### Admin Endpoints
+
 ```
 Authorization: Bearer <admin_token>
 ```
@@ -66,11 +68,13 @@ Authorization: Bearer <admin_token>
 Public endpoints that don't require authentication.
 
 ### Get Departments
+
 ```http
 GET /api/public/departments
 ```
 
 **Response:**
+
 ```json
 ["ELECTRICITY", "WATER", "GAS", "SANITATION", "SOLAR"]
 ```
@@ -78,14 +82,17 @@ GET /api/public/departments
 ---
 
 ### Get Services
+
 ```http
 GET /api/public/services?department=ELECTRICITY
 ```
 
 **Query Parameters:**
+
 - `department` (optional): Filter services by department
 
 **Response:**
+
 ```json
 ["NEW_CONNECTION", "BILL_PAYMENT", "METER_READING"]
 ```
@@ -93,14 +100,17 @@ GET /api/public/services?department=ELECTRICITY
 ---
 
 ### Get Schemes
+
 ```http
 GET /api/public/schemes?department=SOLAR
 ```
 
 **Query Parameters:**
+
 - `department` (optional): Filter schemes by department
 
 **Response:**
+
 ```json
 [
   {
@@ -118,11 +128,13 @@ GET /api/public/schemes?department=SOLAR
 ---
 
 ### Get Scheme Details
+
 ```http
 GET /api/public/schemes/:schemeId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "scheme-uuid",
@@ -135,11 +147,13 @@ GET /api/public/schemes/:schemeId
 ---
 
 ### Get Tariffs
+
 ```http
 GET /api/public/tariffs
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -153,11 +167,13 @@ GET /api/public/tariffs
 ---
 
 ### Get Policies
+
 ```http
 GET /api/public/policies
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -170,11 +186,13 @@ GET /api/public/policies
 ---
 
 ### Get Advisories
+
 ```http
 GET /api/public/advisories
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -192,11 +210,13 @@ GET /api/public/advisories
 ---
 
 ### Track Application Status (Public)
+
 ```http
 GET /api/public/status/application/:applicationId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "app-uuid",
@@ -209,11 +229,13 @@ GET /api/public/status/application/:applicationId
 ---
 
 ### Track Grievance Status (Public)
+
 ```http
 GET /api/public/status/grievance/:grievanceId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "grv-uuid",
@@ -228,11 +250,13 @@ GET /api/public/status/grievance/:grievanceId
 ## 🔐 Authentication APIs
 
 ### Request OTP (Citizen)
+
 ```http
 POST /api/auth/request-otp
 ```
 
 **Request Body:**
+
 ```json
 {
   "mobileNumber": "9876543210"
@@ -240,6 +264,7 @@ POST /api/auth/request-otp
 ```
 
 **Response:**
+
 ```json
 {
   "message": "OTP sent",
@@ -250,11 +275,13 @@ POST /api/auth/request-otp
 ---
 
 ### Verify OTP (Citizen)
+
 ```http
 POST /api/auth/verify-otp
 ```
 
 **Request Body:**
+
 ```json
 {
   "mobileNumber": "9876543210",
@@ -263,6 +290,7 @@ POST /api/auth/verify-otp
 ```
 
 **Response:**
+
 ```json
 {
   "token": "jwt-token-string",
@@ -277,6 +305,7 @@ POST /api/auth/verify-otp
 ```
 
 **Notes:**
+
 - Auto-creates citizen if mobile number doesn't exist
 - Default OTP is `123456` (configurable via `DEFAULT_OTP` env var)
 - Token valid for 24 hours
@@ -284,12 +313,14 @@ POST /api/auth/verify-otp
 ---
 
 ### Logout (Citizen)
+
 ```http
 POST /api/auth/logout
 Authorization: Bearer <citizen_token>
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Logged out"
@@ -299,11 +330,13 @@ Authorization: Bearer <citizen_token>
 ---
 
 ### Admin Login
+
 ```http
 POST /api/admin/auth/login
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "admin@example.com",
@@ -312,6 +345,7 @@ POST /api/admin/auth/login
 ```
 
 **Response:**
+
 ```json
 {
   "token": "jwt-token-string",
@@ -326,17 +360,20 @@ POST /api/admin/auth/login
 ```
 
 **Notes:**
+
 - Token valid for 8 hours
 
 ---
 
 ### Admin Logout
+
 ```http
 POST /api/admin/auth/logout
 Authorization: Bearer <admin_token>
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Logged out"
@@ -350,11 +387,13 @@ Authorization: Bearer <admin_token>
 Require citizen authentication (`Authorization: Bearer <citizen_token>`)
 
 ### Get Profile
+
 ```http
 GET /api/citizen/profile
 ```
 
 **Response:**
+
 ```json
 {
   "id": "citizen-uuid",
@@ -368,11 +407,13 @@ GET /api/citizen/profile
 ---
 
 ### Update Profile
+
 ```http
 PUT /api/citizen/profile
 ```
 
 **Request Body:**
+
 ```json
 {
   "fullName": "John Doe Updated",
@@ -382,6 +423,7 @@ PUT /api/citizen/profile
 ```
 
 **Response:**
+
 ```json
 {
   "id": "citizen-uuid",
@@ -394,11 +436,13 @@ PUT /api/citizen/profile
 ---
 
 ### Get Service Accounts
+
 ```http
 GET /api/citizen/service-accounts
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -414,11 +458,13 @@ GET /api/citizen/service-accounts
 ---
 
 ### Link Service Account
+
 ```http
 POST /api/citizen/service-accounts/link
 ```
 
 **Request Body:**
+
 ```json
 {
   "accountNumber": "ELEC123456",
@@ -427,6 +473,7 @@ POST /api/citizen/service-accounts/link
 ```
 
 **Response:**
+
 ```json
 {
   "id": "account-uuid",
@@ -444,16 +491,18 @@ POST /api/citizen/service-accounts/link
 Require citizen authentication.
 
 ### Get All Bills
+
 ```http
 GET /api/billing/bills
 ```
 
 **Response:**
+
 ```json
 [
   {
     "id": "bill-uuid",
-    "amount": 1250.50,
+    "amount": 1250.5,
     "dueDate": "2026-01-31T00:00:00.000Z",
     "isPaid": false,
     "billingPeriodStart": "2025-12-01T00:00:00.000Z",
@@ -470,15 +519,17 @@ GET /api/billing/bills
 ---
 
 ### Get Bill Details
+
 ```http
 GET /api/billing/bills/:billId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "bill-uuid",
-  "amount": 1250.50,
+  "amount": 1250.5,
   "dueDate": "2026-01-31T00:00:00.000Z",
   "isPaid": false,
   "unitsConsumed": 150,
@@ -492,24 +543,27 @@ GET /api/billing/bills/:billId
 ---
 
 ### Initiate Payment
+
 ```http
 POST /api/billing/payments/initiate
 ```
 
 **Request Body:**
+
 ```json
 {
   "billId": "bill-uuid",
-  "amount": 1250.50
+  "amount": 1250.5
 }
 ```
 
 **Response:**
+
 ```json
 {
   "id": "payment-uuid",
   "billId": "bill-uuid",
-  "amount": 1250.50,
+  "amount": 1250.5,
   "status": "INITIATED",
   "createdAt": "2026-01-20T10:00:00.000Z"
 }
@@ -518,11 +572,13 @@ POST /api/billing/payments/initiate
 ---
 
 ### Confirm Payment
+
 ```http
 POST /api/billing/payments/confirm
 ```
 
 **Request Body:**
+
 ```json
 {
   "paymentId": "payment-uuid",
@@ -532,6 +588,7 @@ POST /api/billing/payments/confirm
 ```
 
 **Response:**
+
 ```json
 {
   "id": "payment-uuid",
@@ -542,22 +599,25 @@ POST /api/billing/payments/confirm
 ```
 
 **Notes:**
+
 - Updates bill's `isPaid` status to `true` on success
 - Valid statuses: `SUCCESS`, `FAILED`
 
 ---
 
 ### Get Payment History
+
 ```http
 GET /api/billing/payments/history
 ```
 
 **Response:**
+
 ```json
 [
   {
     "id": "payment-uuid",
-    "amount": 1250.50,
+    "amount": 1250.5,
     "status": "SUCCESS",
     "receiptNo": "RCPT123456",
     "paidAt": "2026-01-20T10:05:00.000Z",
@@ -575,19 +635,21 @@ GET /api/billing/payments/history
 ---
 
 ### Get Payment Receipt
+
 ```http
 GET /api/billing/payments/:paymentId/receipt
 ```
 
 **Response:**
+
 ```json
 {
   "id": "payment-uuid",
   "receiptNo": "RCPT123456",
-  "amount": 1250.50,
+  "amount": 1250.5,
   "paidAt": "2026-01-20T10:05:00.000Z",
   "bill": {
-    "amount": 1250.50,
+    "amount": 1250.5,
     "serviceAccount": {
       "accountNumber": "ELEC123456",
       "department": "ELECTRICITY"
@@ -603,11 +665,13 @@ GET /api/billing/payments/:paymentId/receipt
 Require citizen authentication.
 
 ### Submit Application
+
 ```http
 POST /api/applications
 ```
 
 **Request Body:**
+
 ```json
 {
   "department": "ELECTRICITY",
@@ -617,6 +681,7 @@ POST /api/applications
 ```
 
 **Response:**
+
 ```json
 {
   "id": "app-uuid",
@@ -629,22 +694,26 @@ POST /api/applications
 ```
 
 **Notes:**
+
 - `schemeId` is optional
 - Status automatically set to `SUBMITTED`
 
 ---
 
 ### Upload Application Document
+
 ```http
 POST /api/applications/:applicationId/documents
 Content-Type: multipart/form-data
 ```
 
 **Form Data:**
+
 - `file`: (File upload) OR
 - `fileUrl`: (String URL)
 
 **Response:**
+
 ```json
 {
   "id": "doc-uuid",
@@ -657,11 +726,13 @@ Content-Type: multipart/form-data
 ---
 
 ### Get My Applications
+
 ```http
 GET /api/applications
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -688,11 +759,13 @@ GET /api/applications
 ---
 
 ### Get Application Details
+
 ```http
 GET /api/applications/:applicationId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "app-uuid",
@@ -712,11 +785,13 @@ GET /api/applications/:applicationId
 Require citizen authentication.
 
 ### Submit Grievance
+
 ```http
 POST /api/grievances
 ```
 
 **Request Body:**
+
 ```json
 {
   "department": "ELECTRICITY",
@@ -725,6 +800,7 @@ POST /api/grievances
 ```
 
 **Response:**
+
 ```json
 {
   "id": "grv-uuid",
@@ -739,16 +815,19 @@ POST /api/grievances
 ---
 
 ### Upload Grievance Document
+
 ```http
 POST /api/grievances/:grievanceId/documents
 Content-Type: multipart/form-data
 ```
 
 **Form Data:**
+
 - `file`: (File upload) OR
 - `fileUrl`: (String URL)
 
 **Response:**
+
 ```json
 {
   "id": "doc-uuid",
@@ -761,11 +840,13 @@ Content-Type: multipart/form-data
 ---
 
 ### Get My Grievances
+
 ```http
 GET /api/grievances
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -783,11 +864,13 @@ GET /api/grievances
 ---
 
 ### Get Grievance Details
+
 ```http
 GET /api/grievances/:grievanceId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "grv-uuid",
@@ -806,11 +889,13 @@ GET /api/grievances/:grievanceId
 Require admin authentication (`Authorization: Bearer <admin_token>`)
 
 ### Dashboard Summary
+
 ```http
 GET /api/admin/dashboard/summary
 ```
 
 **Response:**
+
 ```json
 {
   "citizens": 150,
@@ -825,11 +910,13 @@ GET /api/admin/dashboard/summary
 ---
 
 ### Kiosk Usage Stats
+
 ```http
 GET /api/admin/dashboard/kiosk-usage
 ```
 
 **Response:**
+
 ```json
 {
   "sessions": 89
@@ -841,11 +928,13 @@ GET /api/admin/dashboard/kiosk-usage
 ---
 
 ### Get All Applications (Admin)
+
 ```http
 GET /api/admin/applications
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -868,11 +957,13 @@ GET /api/admin/applications
 ---
 
 ### Get Application Details (Admin)
+
 ```http
 GET /api/admin/applications/:applicationId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "app-uuid",
@@ -888,11 +979,13 @@ GET /api/admin/applications/:applicationId
 ---
 
 ### Update Application Status
+
 ```http
 PATCH /api/admin/applications/:applicationId/status
 ```
 
 **Request Body:**
+
 ```json
 {
   "status": "UNDER_PROCESS"
@@ -900,6 +993,7 @@ PATCH /api/admin/applications/:applicationId/status
 ```
 
 **Valid Status Values:**
+
 - `UNDER_PROCESS`
 - `DEMAND_NOTE_ISSUED`
 - `APPROVED`
@@ -907,6 +1001,7 @@ PATCH /api/admin/applications/:applicationId/status
 - `DELIVERED`
 
 **Response:**
+
 ```json
 {
   "id": "app-uuid",
@@ -920,11 +1015,13 @@ PATCH /api/admin/applications/:applicationId/status
 ---
 
 ### Get All Grievances (Admin)
+
 ```http
 GET /api/admin/grievances
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -946,11 +1043,13 @@ GET /api/admin/grievances
 ---
 
 ### Update Grievance Status
+
 ```http
 PATCH /api/admin/grievances/:grievanceId/status
 ```
 
 **Request Body:**
+
 ```json
 {
   "status": "UNDER_PROCESS"
@@ -958,6 +1057,7 @@ PATCH /api/admin/grievances/:grievanceId/status
 ```
 
 **Valid Status Values:**
+
 - `UNDER_PROCESS`
 - `APPROVED`
 - `REJECTED`
@@ -965,6 +1065,7 @@ PATCH /api/admin/grievances/:grievanceId/status
 - `COMPLETED`
 
 **Response:**
+
 ```json
 {
   "id": "grv-uuid",
@@ -976,16 +1077,18 @@ PATCH /api/admin/grievances/:grievanceId/status
 ---
 
 ### Get All Payments (Admin)
+
 ```http
 GET /api/admin/payments
 ```
 
 **Response:**
+
 ```json
 [
   {
     "id": "payment-uuid",
-    "amount": 1250.50,
+    "amount": 1250.5,
     "status": "SUCCESS",
     "receiptNo": "RCPT123456",
     "paidAt": "2026-01-20T10:05:00.000Z",
@@ -1006,11 +1109,13 @@ GET /api/admin/payments
 ---
 
 ### Get Payment Details (Admin)
+
 ```http
 GET /api/admin/payments/:paymentId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "payment-uuid",
@@ -1024,11 +1129,13 @@ GET /api/admin/payments/:paymentId
 ---
 
 ### Create Scheme
+
 ```http
 POST /api/admin/schemes
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "PM Surya Ghar",
@@ -1041,6 +1148,7 @@ POST /api/admin/schemes
 ```
 
 **Response:**
+
 ```json
 {
   "id": "scheme-uuid",
@@ -1053,11 +1161,13 @@ POST /api/admin/schemes
 ---
 
 ### Update Scheme
+
 ```http
 PATCH /api/admin/schemes/:schemeId
 ```
 
 **Request Body:**
+
 ```json
 {
   "description": "Updated description",
@@ -1066,6 +1176,7 @@ PATCH /api/admin/schemes/:schemeId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "scheme-uuid",
@@ -1077,11 +1188,13 @@ PATCH /api/admin/schemes/:schemeId
 ---
 
 ### Delete Scheme
+
 ```http
 DELETE /api/admin/schemes/:schemeId
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Scheme deleted"
@@ -1091,11 +1204,13 @@ DELETE /api/admin/schemes/:schemeId
 ---
 
 ### Create Advisory
+
 ```http
 POST /api/admin/advisories
 ```
 
 **Request Body:**
+
 ```json
 {
   "title": "Power Cut Schedule",
@@ -1107,11 +1222,13 @@ POST /api/admin/advisories
 ```
 
 **Valid Severity Values:**
+
 - `INFO`
 - `WARNING`
 - `CRITICAL`
 
 **Response:**
+
 ```json
 {
   "id": "advisory-uuid",
@@ -1125,11 +1242,13 @@ POST /api/admin/advisories
 ---
 
 ### Update Advisory
+
 ```http
 PATCH /api/admin/advisories/:advisoryId
 ```
 
 **Request Body:**
+
 ```json
 {
   "message": "Updated message",
@@ -1138,6 +1257,7 @@ PATCH /api/admin/advisories/:advisoryId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "advisory-uuid",
@@ -1149,11 +1269,13 @@ PATCH /api/admin/advisories/:advisoryId
 ---
 
 ### Delete Advisory
+
 ```http
 DELETE /api/admin/advisories/:advisoryId
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Advisory deleted"
@@ -1163,11 +1285,13 @@ DELETE /api/admin/advisories/:advisoryId
 ---
 
 ### Get All Citizens
+
 ```http
 GET /api/admin/citizens
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -1183,11 +1307,13 @@ GET /api/admin/citizens
 ---
 
 ### Get Citizen Details
+
 ```http
 GET /api/admin/citizens/:citizenId
 ```
 
 **Response:**
+
 ```json
 {
   "id": "citizen-uuid",
@@ -1201,11 +1327,13 @@ GET /api/admin/citizens/:citizenId
 ---
 
 ### Get Active Sessions
+
 ```http
 GET /api/admin/sessions/active
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -1221,11 +1349,13 @@ GET /api/admin/sessions/active
 ---
 
 ### Get Audit Logs
+
 ```http
 GET /api/admin/audit-logs
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -1245,11 +1375,13 @@ GET /api/admin/audit-logs
 ---
 
 ### Get Error Reports
+
 ```http
 GET /api/admin/error-reports
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -1265,11 +1397,13 @@ GET /api/admin/error-reports
 ---
 
 ### Create Service Account (Admin)
+
 ```http
 POST /api/admin/service-accounts
 ```
 
 **Request Body:**
+
 ```json
 {
   "citizenId": "citizen-uuid",
@@ -1281,10 +1415,12 @@ POST /api/admin/service-accounts
 ```
 
 **Notes:**
+
 - Provide either `citizenId` OR `mobileNumber`
 - If citizen doesn't exist, creates new citizen with mobile number
 
 **Response:**
+
 ```json
 {
   "id": "account-uuid",
@@ -1301,6 +1437,7 @@ POST /api/admin/service-accounts
 ## Status Enums
 
 ### ApplicationStatus
+
 - `SUBMITTED` - Initial state
 - `UNDER_PROCESS` - Being reviewed
 - `DEMAND_NOTE_ISSUED` - Payment required
@@ -1311,11 +1448,13 @@ POST /api/admin/service-accounts
 - `COMPLETED` - Fully completed
 
 ### PaymentStatus
+
 - `INITIATED` - Payment started
 - `SUCCESS` - Payment successful
 - `FAILED` - Payment failed
 
 ### Advisory Severity
+
 - `INFO` - Informational
 - `WARNING` - Warning message
 - `CRITICAL` - Critical alert
@@ -1333,6 +1472,7 @@ All endpoints follow a consistent error format:
 ```
 
 **Common HTTP Status Codes:**
+
 - `400` - Bad Request (validation error)
 - `401` - Unauthorized (invalid/missing token)
 - `404` - Not Found
@@ -1356,6 +1496,7 @@ All endpoints follow a consistent error format:
 ## Database Schema
 
 Key tables:
+
 - `Citizen` - User accounts
 - `Admin` - Admin accounts
 - `Session` / `AdminSession` - Auth sessions
