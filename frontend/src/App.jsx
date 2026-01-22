@@ -10,9 +10,14 @@ import { useAuth } from "./context/AuthContext";
 import AttractScreen from "./pages/AttractScreen";
 import LanguageSelection from "./pages/LanguageSelection";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminApplications from "./pages/AdminApplications";
+import AdminGrievances from "./pages/AdminGrievances";
 import NotFound from "./pages/NotFound";
 import Accessibility from "./pages/Accessibility";
+import Profile from "./pages/Profile";
 
 // Service Hubs
 import ElectricityHub from "./components/services/electricity/ElectricityHub";
@@ -27,12 +32,15 @@ import NewConnection from "./components/services/electricity/NewConnection";
 // Billing & Payments
 import AllBills from "./pages/AllBills";
 import AllUsage from "./pages/AllUsage";
+import MyApplications from "./pages/MyApplications";
 
 function App() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const Protected = (Component) =>
     user ? <Component /> : <Navigate to="/login" replace />;
+  const ProtectedAdmin = (Component) =>
+    isAdmin ? <Component /> : <Navigate to="/admin/login" replace />;
 
   return (
     <Router>
@@ -41,10 +49,24 @@ function App() {
         <Route path="/" element={<AttractScreen />} />
         <Route path="/language" element={<LanguageSelection />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/accessibility" element={<Accessibility />} />
 
         {/* Dashboard */}
         <Route path="/dashboard" element={Protected(Dashboard)} />
+        <Route path="/profile" element={Protected(Profile)} />
+        <Route
+          path="/admin/dashboard"
+          element={ProtectedAdmin(AdminDashboard)}
+        />
+        <Route
+          path="/admin/applications"
+          element={ProtectedAdmin(AdminApplications)}
+        />
+        <Route
+          path="/admin/grievances"
+          element={ProtectedAdmin(AdminGrievances)}
+        />
 
         {/* ================= ELECTRICITY ROUTES ================= */}
         <Route path="/electricity">
@@ -61,6 +83,7 @@ function App() {
         {/* Billing */}
         <Route path="/all-bills" element={Protected(AllBills)} />
         <Route path="/all-usage" element={Protected(AllUsage)} />
+        <Route path="/my-applications" element={Protected(MyApplications)} />
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />

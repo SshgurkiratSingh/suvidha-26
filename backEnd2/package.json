@@ -1,0 +1,31 @@
+{
+  "name": "backend2",
+  "version": "1.0.0",
+  "description": "Minimal Express service backed by Prisma",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "smoke": "node scripts/smoke-test.js",
+    "admin:create": "node scripts/create-admin.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "pg": "^8.17.2"
+  },
+  "devDependencies": {
+    "prisma": "^7.3.0"
+  }
+}

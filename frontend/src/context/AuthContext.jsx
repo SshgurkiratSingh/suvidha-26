@@ -1,108 +1,139 @@
-import React, { createContext, useState, useContext, useEffect } from 'react'
-import { MOCK_USERS } from '../utils/mockdata'
-import { generateOTP } from '../utils/helpers'
+import { createContext, useState, useContext, useEffect } from "react";
+import { authAPI, adminAuthAPI } from "../components/services/api";
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
-}
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    // Check if user is logged in (from localStorage)
-    const savedUser = localStorage.getItem('user')
-    return savedUser ? JSON.parse(savedUser) : null
-  })
-
-  const [otpStore, setOtpStore] = useState({})
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [citizenToken, setCitizenToken] = useState(
+    localStorage.getItem("citizenToken") || null
+  );
+  const [adminToken, setAdminToken] = useState(
+    localStorage.getItem("adminToken") || null
+  );
 
   useEffect(() => {
-    // Save user to localStorage whenever it changes
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem("user", JSON.stringify(user));
     } else {
-      localStorage.removeItem('user')
+      localStorage.removeItem("user");
     }
-  }, [user])
+  }, [user]);
 
-  // Send OTP (mock implementation)
-  const sendOTP = async (phoneNumber) => {
+  useEffect(() => {
+    if (citizenToken) {
+      localStorage.setItem("citizenToken", citizenToken);
+    } else {
+      localStorage.removeItem("citizenToken");
+    }
+  }, [citizenToken]);
+
+  useEffect(() => {
+    if (adminToken) {
+      localStorage.setItem("adminToken", adminToken);
+    } else {
+      localStorage.removeItem("adminToken");
+    }
+  }, [adminToken]);
+
+  const sendOTP = async (mobileNumber) => {
     try {
-      // Check if phone number exists in mock data
-      if (!MOCK_USERS[phoneNumber]) {
-        throw new Error('User not found')
-      }
-
-      // For mock number, use fixed OTP
-      if (phoneNumber === '6239036290') {
-        const otp = '123456' // Fixed OTP for demo
-        setOtpStore({ ...otpStore, [phoneNumber]: otp })
-        console.log(`📱 OTP for ${phoneNumber}: ${otp}`)
-        return { success: true, message: 'OTP sent successfully' }
-      }
-
-      // For admin number, no OTP needed (direct login)
-      if (phoneNumber === '7889249131') {
-        return { success: true, message: 'Admin login - no OTP required' }
-      }
-
-      // Generate random OTP for other numbers
-      const otp = generateOTP()
-      setOtpStore({ ...otpStore, [phoneNumber]: otp })
-      console.log(`📱 OTP for ${phoneNumber}: ${otp}`)
-      
-      return { success: true, message: 'OTP sent successfully' }
+      const result = await authAPI.requestOTP(mobileNumber);
+      return { success: true, message: result.message || "OTP sent" };
     } catch (error) {
-      return { success: false, message: error.message }
+      return { success: false, message: error.message || "Failed to send OTP" };
     }
-  }
+  };
 
-  // Verify OTP
-  const verifyOTP = async (phoneNumber, otp) => {
+  const verifyOTP = async (mobileNumber, otp) => {
     try {
-      // Admin direct login
-      if (phoneNumber === '7889249131') {
-        const adminUser = MOCK_USERS[phoneNumber]
-        setUser(adminUser)
-        return { success: true, user: adminUser }
-      }
+      const result = await authAPI.verifyOTP(mobileNumber, otp);
+      const citizen = result.citizen;
+      const normalizedUser = {
+        id: citizen.id,
+        fullName: citizen.fullName,
+        mobileNumber: citizen.mobileNumber,
+        email: citizen.email,
+        role: "citizen",
+      };
 
-      // Verify OTP for other users
-      if (otpStore[phoneNumber] === otp) {
-        const userData = MOCK_USERS[phoneNumber]
-        setUser(userData)
-        // Clear OTP after successful verification
-        const newOtpStore = { ...otpStore }
-        delete newOtpStore[phoneNumber]
-        setOtpStore(newOtpStore)
-        return { success: true, user: userData }
-      } else {
-        return { success: false, message: 'Invalid OTP' }
-      }
+      setUser(normalizedUser);
+      setCitizenToken(result.token);
+      setAdminToken(null);
+      return { success: true, user: normalizedUser };
     } catch (error) {
-      return { success: false, message: error.message }
+      return { success: false, message: error.message || "Invalid OTP" };
     }
-  }
+  };
+
+  const adminLogin = async (email, password) => {
+    try {
+      const result = await adminAuthAPI.login(email, password);
+      const admin = result.admin;
+      const normalizedUser = {
+        id: admin.id,
+        fullName: admin.fullName,
+        email: admin.email,
+        role: "admin",
+      };
+
+      setUser(normalizedUser);
+      setAdminToken(result.token);
+      setCitizenToken(null);
+      return { success: true, user: normalizedUser };
+    } catch (error) {
+      return { success: false, message: error.message || "Login failed" };
+    }
+  };
+
+  // Refresh user data
+  const refreshUser = (updatedData) => {
+    if (user) {
+      const updatedUser = { ...user, ...updatedData };
+      setUser(updatedUser);
+    }
+  };
 
   // Logout
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('user')
-  }
+  const logout = async () => {
+    try {
+      if (user?.role === "admin") {
+        await adminAuthAPI.logout();
+      } else if (user?.role === "citizen") {
+        await authAPI.logout();
+      }
+    } catch (error) {
+      // ignore logout errors
+    } finally {
+      setUser(null);
+      setCitizenToken(null);
+      setAdminToken(null);
+    }
+  };
 
   const value = {
     user,
     sendOTP,
     verifyOTP,
+    adminLogin,
     logout,
+    refreshUser,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
-  }
+    isAdmin: user?.role === "admin",
+    citizenToken,
+    adminToken,
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

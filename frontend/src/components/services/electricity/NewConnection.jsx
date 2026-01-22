@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 import ProgressBar from "../../common/ProgressBar";
 import DocumentUpload from "../../common/DocumentUpload";
 import { generateApplicationNumber } from "../../../utils/generateApplicationNumber";
 import { useNotification } from "../../../hooks/useNotification";
+import { applicationsAPI } from "../api";
 import statesData from "../../../data/states-and-districts.json";
 
 const steps = [
@@ -16,7 +19,7 @@ const steps = [
 
 const initialForm = {
   name: "",
-  phone: "9876543210", // Pre-filled mock
+  phone: "",
   aadhaar: "",
   state: "",
   district: "",
@@ -34,8 +37,22 @@ const NewConnection = () => {
   const [districts, setDistricts] = useState([]);
   const [errors, setErrors] = useState({});
   const [applicationNo, setApplicationNo] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const notify = useNotification();
+
+  /* ------------------ LOAD USER DATA ------------------ */
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.fullName || "",
+        phone: user.mobileNumber || "",
+      }));
+    }
+  }, [user]);
 
   /* ------------------ LOAD DRAFT ------------------ */
   useEffect(() => {
@@ -95,11 +112,56 @@ const NewConnection = () => {
   const prevStep = () => setStep((prev) => prev - 1);
 
   /* ------------------ SUBMIT ------------------ */
-  const handleSubmit = () => {
-    const appNo = generateApplicationNumber("ELEC");
-    setApplicationNo(appNo);
-    localStorage.removeItem("electricity_new_connection_draft");
-    notify.success("Application submitted successfully");
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      
+      // Create application via API
+      const applicationData = {
+        department: "ELECTRICITY",
+        serviceType: "NEW_CONNECTION",
+        metadata: {
+          applicantDetails: {
+            name: formData.name,
+            phone: formData.phone,
+            aadhaar: formData.aadhaar,
+          },
+          addressDetails: {
+            state: formData.state,
+            district: formData.district,
+            address: formData.address,
+            propertyType: formData.propertyType,
+          },
+          connectionDetails: {
+            load: formData.load,
+            phase: formData.phase,
+            purpose: formData.purpose,
+          },
+        },
+      };
+
+      const response = await applicationsAPI.create(applicationData);
+      
+      // Upload documents if any
+      if (formData.documents && Object.keys(formData.documents).length > 0) {
+        for (const [docType, docFile] of Object.entries(formData.documents)) {
+          if (docFile) {
+            // For now, we'll store the file URL/reference
+            // In production, you'd upload to cloud storage first
+            await applicationsAPI.uploadDocument(response.id, docFile);
+          }
+        }
+      }
+
+      setApplicationNo(response.id);
+      localStorage.removeItem("electricity_new_connection_draft");
+      notify.success("Application submitted successfully!");
+    } catch (error) {
+      notify.error(error.message || "Failed to submit application. Please try again.");
+      console.error("Submission error:", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -270,10 +332,24 @@ const NewConnection = () => {
                   </svg>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-800">Application Submitted</h2>
-                <p className="text-gray-500 mt-2">Download your receipt or track status using the number below.</p>
+                <p className="text-gray-500 mt-2">Your electricity connection application has been received.</p>
                 <div className="mt-8 p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 inline-block">
-                  <p className="text-sm text-gray-500 uppercase tracking-widest">Application Number</p>
-                  <p className="font-mono text-3xl font-bold text-[#0A3D62] mt-1">{applicationNo}</p>
+                  <p className="text-sm text-gray-500 uppercase tracking-widest">Application ID</p>
+                  <p className="font-mono text-2xl font-bold text-[#0A3D62] mt-1 break-all">{applicationNo}</p>
+                </div>
+                <div className="mt-8 flex gap-4 justify-center">
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="gov-button-primary"
+                  >
+                    Back to Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate("/all-usage")}
+                    className="gov-button-secondary"
+                  >
+                    Track Application
+                  </button>
                 </div>
               </div>
             )}
@@ -299,8 +375,12 @@ const NewConnection = () => {
                   Next Step
                 </button>
               ) : (
-                <button onClick={handleSubmit} className="gov-button-secondary">
-                  Submit Application
+                <button 
+                  onClick={handleSubmit} 
+                  disabled={submitting}
+                  className="gov-button-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? "Submitting..." : "Submit Application"}
                 </button>
               )}
             </div>
