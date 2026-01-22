@@ -5,9 +5,8 @@ services:
     env: node
     region: singapore
     plan: free
-    rootDir: backEnd2
-    buildCommand: cd backEnd2 && npm install && npx prisma generate
-    startCommand: cd backEnd2 && npm start
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
