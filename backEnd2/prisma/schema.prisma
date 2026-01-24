@@ -1,0 +1,235 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Department {
+  ELECTRICITY
+  GAS
+  WATER
+  SANITATION
+  MUNICIPAL
+}
+
+enum ServiceType {
+  BILL_PAYMENT
+  NEW_CONNECTION
+  LOAD_CHANGE
+  NAME_CHANGE
+  CONNECTION_REMOVAL
+  REFILL
+  GRIEVANCE
+  SCHEME_APPLICATION
+  WATER_QUALITY_TEST
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_PROCESS
+  DEMAND_NOTE_ISSUED
+  PAYMENT_PENDING
+  APPROVED
+  REJECTED
+  DELIVERED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum AuthType {
+  OTP
+}
+
+enum AdminRole {
+  SUPER
+  SUPPORT
+  ANALYST
+}
+
+enum ActorType {
+  ADMIN
+  CITIZEN
+  SYSTEM
+}
+
+model Citizen {
+  id           String   @id @default(uuid())
+  fullName     String
+  mobileNumber String   @unique
+  email        String?  @unique
+  createdAt    DateTime @default(now())
+
+  sessions          Session[]
+  serviceAccounts   ServiceAccount[]
+  applications      Application[]
+  payments          Payment[]
+  grievances        Grievance[]
+  waterQualityTests WaterQualityTest[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  citizenId String
+  authType  AuthType
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  citizen Citizen @relation(fields: [citizenId], references: [id])
+}
+
+model ServiceAccount {
+  id         String     @id @default(uuid())
+  citizenId  String
+  department Department
+  consumerId String
+  address    String
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+
+  citizen Citizen @relation(fields: [citizenId], references: [id])
+  bills   Bill[]
+}
+
+model Bill {
+  id               String   @id @default(uuid())
+  serviceAccountId String
+  amount           Float
+  dueDate          DateTime
+  isPaid           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  serviceAccount ServiceAccount @relation(fields: [serviceAccountId], references: [id])
+  payments       Payment[]
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  citizenId String
+  billId    String?
+  amount    Float
+  status    PaymentStatus
+  receiptNo String?
+  createdAt DateTime      @default(now())
+
+  citizen Citizen @relation(fields: [citizenId], references: [id])
+  bill    Bill?   @relation(fields: [billId], references: [id])
+}
+
+model Application {
+  id          String            @id @default(uuid())
+  citizenId   String
+  department  Department
+  serviceType ServiceType
+  status      ApplicationStatus
+  submittedAt DateTime          @default(now())
+  schemeId    String?
+  updatedAt   DateTime          @updatedAt
+
+  citizen   Citizen       @relation(fields: [citizenId], references: [id])
+  scheme    PublicScheme? @relation(fields: [schemeId], references: [id])
+  documents Document[]    @relation("ApplicationDocuments")
+}
+
+model Grievance {
+  id          String            @id @default(uuid())
+  citizenId   String
+  department  Department
+  description String
+  status      ApplicationStatus
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  citizen   Citizen    @relation(fields: [citizenId], references: [id])
+  documents Document[] @relation("GrievanceDocuments")
+}
+
+model Document {
+  id            String   @id @default(uuid())
+  applicationId String?
+  grievanceId   String?
+  fileUrl       String
+  uploadedAt    DateTime @default(now())
+
+  application Application? @relation("ApplicationDocuments", fields: [applicationId], references: [id])
+  grievance   Grievance?   @relation("GrievanceDocuments", fields: [grievanceId], references: [id])
+}
+
+model PublicScheme {
+  id          String     @id @default(uuid())
+  department  Department
+  title       String
+  description String
+  eligibility String
+
+  applications Application[]
+}
+
+model Advisory {
+  id         String     @id @default(uuid())
+  department Department
+  message    String
+  validTill  DateTime
+}
+
+model WaterQualityTest {
+  id            String            @id @default(uuid())
+  citizenId     String
+  sampleAddress String
+  status        ApplicationStatus
+  reportUrl     String?
+  createdAt     DateTime          @default(now())
+
+  citizen Citizen @relation(fields: [citizenId], references: [id])
+}
+
+model Admin {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  fullName     String
+  passwordHash String
+  role         AdminRole @default(SUPER)
+  createdAt    DateTime  @default(now())
+
+  sessions AdminSession[]
+}
+
+model AdminSession {
+  id        String   @id @default(uuid())
+  adminId   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  admin Admin @relation(fields: [adminId], references: [id])
+}
+
+model AuditLog {
+  id        String    @id @default(uuid())
+  actorType ActorType
+  actorId   String?
+  action    String
+  metadata  Json?
+  createdAt DateTime  @default(now())
+}
+
+model ErrorReport {
+  id        String   @id @default(uuid())
+  path      String
+  method    String
+  message   String
+  stack     String?
+  createdAt DateTime @default(now())
+}

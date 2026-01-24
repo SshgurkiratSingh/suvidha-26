@@ -1,19 +1,19 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { useLanguage } from '../../context/LanguageContext'
-import { LogOut, User, Bell } from 'lucide-react'
-import { motion } from 'framer-motion'
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
+import { LogOut, User, Bell } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Header = () => {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const { t } = useLanguage()
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { t } = useLanguage();
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate("/login");
+  };
 
   return (
     <motion.header
@@ -30,7 +30,9 @@ const Header = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">SUVIDHA</h1>
-              <p className="text-xs text-white/80">{t('smartCityCivicServices')}</p>
+              <p className="text-xs text-white/80">
+                {t("smartCityCivicServices")}
+              </p>
             </div>
           </div>
 
@@ -47,8 +49,14 @@ const Header = () => {
               <div className="flex items-center gap-3 bg-primary-hover px-4 py-2 rounded-lg">
                 <User className="w-5 h-5" />
                 <div className="text-left">
-                  <p className="font-semibold text-sm">{user.name}</p>
-                  <p className="text-xs text-white/70">{user.phone}</p>
+                  <p className="font-semibold text-sm">
+                    {user.fullName || user.name || "User"}
+                  </p>
+                  <p className="text-xs text-white/70">
+                    {user.role === "admin"
+                      ? user.email
+                      : user.mobileNumber || user.phone}
+                  </p>
                 </div>
               </div>
 
@@ -58,14 +66,14 @@ const Header = () => {
                 className="flex items-center gap-2 bg-danger hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="font-semibold">{t('logout')}</span>
+                <span className="font-semibold">{t("logout")}</span>
               </button>
             </div>
           )}
         </div>
       </div>
     </motion.header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
