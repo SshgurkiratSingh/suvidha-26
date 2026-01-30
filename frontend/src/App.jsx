@@ -5,6 +5,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { KeyboardProvider } from "./context/KeyboardContext"; 
+import GlobalKeyboard from "./components/GlobalKeyboard"; 
 
 // Pages
 import AttractScreen from "./pages/AttractScreen";
@@ -26,6 +28,9 @@ import Accessibility from "./pages/Accessibility";
 import Profile from "./pages/Profile";
 import Tariffs from "./pages/Tariffs";
 import Policies from "./pages/Policies";
+
+// ADD THIS IMPORT
+import MobileUploadPortal from "./pages/MobileUploadPortal"; 
 
 // Service Hubs
 import ElectricityHub from "./components/services/electricity/ElectricityHub";
@@ -65,84 +70,91 @@ function App() {
     isAdmin ? <Component /> : <Navigate to="/admin/login" replace />;
 
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<AttractScreen />} />
-        <Route path="/language" element={<LanguageSelection />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/accessibility" element={<Accessibility />} />
-        <Route path="/tariffs" element={<Tariffs />} />
-        <Route path="/policies" element={<Policies />} />
+    <KeyboardProvider>
+      <Router>
+        <GlobalKeyboard />
+        
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<AttractScreen />} />
+          <Route path="/language" element={<LanguageSelection />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/accessibility" element={<Accessibility />} />
+          <Route path="/tariffs" element={<Tariffs />} />
+          <Route path="/policies" element={<Policies />} />
+          
+          {/* REGISTERED QR SYNC ROUTE */}
+          <Route path="/sync-upload/:appId" element={<MobileUploadPortal />} />
 
-        {/* Dashboard */}
-        <Route path="/dashboard" element={Protected(Dashboard)} />
-        <Route path="/profile" element={Protected(Profile)} />
-        <Route
-          path="/admin/dashboard"
-          element={ProtectedAdmin(AdminDashboard)}
-        />
-        <Route
-          path="/admin/applications"
-          element={ProtectedAdmin(AdminApplications)}
-        />
-        <Route
-          path="/admin/grievances"
-          element={ProtectedAdmin(AdminGrievances)}
-        />
-        <Route path="/admin/schemes" element={ProtectedAdmin(AdminSchemes)} />
-        <Route
-          path="/admin/advisories"
-          element={ProtectedAdmin(AdminAdvisories)}
-        />
-        <Route path="/admin/policies" element={ProtectedAdmin(AdminPolicies)} />
-        <Route path="/admin/tariffs" element={ProtectedAdmin(AdminTariffs)} />
+          {/* Dashboard */}
+          <Route path="/dashboard" element={Protected(Dashboard)} />
+          <Route path="/profile" element={Protected(Profile)} />
+          <Route
+            path="/admin/dashboard"
+            element={ProtectedAdmin(AdminDashboard)}
+          />
+          <Route
+            path="/admin/applications"
+            element={ProtectedAdmin(AdminApplications)}
+          />
+          <Route
+            path="/admin/grievances"
+            element={ProtectedAdmin(AdminGrievances)}
+          />
+          <Route path="/admin/schemes" element={ProtectedAdmin(AdminSchemes)} />
+          <Route
+            path="/admin/advisories"
+            element={ProtectedAdmin(AdminAdvisories)}
+          />
+          <Route path="/admin/policies" element={ProtectedAdmin(AdminPolicies)} />
+          <Route path="/admin/tariffs" element={ProtectedAdmin(AdminTariffs)} />
 
-        {/* ================= ELECTRICITY ROUTES ================= */}
-        <Route path="/electricity">
-          <Route index element={Protected(ElectricityHub)} />
-          <Route path="new-connection" element={Protected(NewConnection)} />
-          <Route path="billing" element={Protected(ElectricityBilling)} />
-        </Route>
+          {/* ================= ELECTRICITY ROUTES ================= */}
+          <Route path="/electricity">
+            <Route index element={Protected(ElectricityHub)} />
+            <Route path="new-connection" element={Protected(NewConnection)} />
+            <Route path="billing" element={Protected(ElectricityBilling)} />
+          </Route>
 
-        {/* ================= OTHER SERVICE HUBS ================= */}
-        <Route path="/water" element={Protected(WaterHub)} />
-        <Route
-          path="/water/new-connection"
-          element={Protected(WaterNewConnection)}
-        />
-        <Route
-          path="/water/quality-test"
-          element={Protected(WaterQualityTest)}
-        />
-        <Route path="/water/billing" element={Protected(WaterBilling)} />
-        <Route path="/gas" element={Protected(GasHub)} />
-        <Route path="/gas/new-lpg" element={Protected(GasNewConnection)} />
-        <Route path="/gas/new-png" element={Protected(GasNewConnection)} />
-        <Route path="/gas/billing" element={Protected(GasBilling)} />
-        <Route path="/sanitation" element={Protected(SanitationHub)} />
-        <Route
-          path="/sanitation/new-connection"
-          element={Protected(SanitationNewConnection)}
-        />
-        <Route
-          path="/sanitation/billing"
-          element={Protected(SanitationBilling)}
-        />
-        <Route path="/solar" element={Protected(SolarHub)} />
+          {/* ================= OTHER SERVICE HUBS ================= */}
+          <Route path="/water" element={Protected(WaterHub)} />
+          <Route
+            path="/water/new-connection"
+            element={Protected(WaterNewConnection)}
+          />
+          <Route
+            path="/water/quality-test"
+            element={Protected(WaterQualityTest)}
+          />
+          <Route path="/water/billing" element={Protected(WaterBilling)} />
+          <Route path="/gas" element={Protected(GasHub)} />
+          <Route path="/gas/new-lpg" element={Protected(GasNewConnection)} />
+          <Route path="/gas/new-png" element={Protected(GasNewConnection)} />
+          <Route path="/gas/billing" element={Protected(GasBilling)} />
+          <Route path="/sanitation" element={Protected(SanitationHub)} />
+          <Route
+            path="/sanitation/new-connection"
+            element={Protected(SanitationNewConnection)}
+          />
+          <Route
+            path="/sanitation/billing"
+            element={Protected(SanitationBilling)}
+          />
+          <Route path="/solar" element={Protected(SolarHub)} />
 
-        {/* Billing */}
-        <Route path="/all-bills" element={Protected(AllBills)} />
-        <Route path="/all-usage" element={Protected(AllUsage)} />
-        <Route path="/my-applications" element={Protected(MyApplications)} />
-        <Route path="/grievances" element={Protected(Grievances)} />
-        <Route path="/track-status" element={Protected(TrackStatus)} />
+          {/* Billing */}
+          <Route path="/all-bills" element={Protected(AllBills)} />
+          <Route path="/all-usage" element={Protected(AllUsage)} />
+          <Route path="/my-applications" element={Protected(MyApplications)} />
+          <Route path="/grievances" element={Protected(Grievances)} />
+          <Route path="/track-status" element={Protected(TrackStatus)} />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </KeyboardProvider>
   );
 }
 

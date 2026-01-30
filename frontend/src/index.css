@@ -155,4 +155,15 @@ html {
     font-size: 0.875rem;
     font-weight: 600;
   }
+/* Style for the Enter/Done button to make it look unique */
+.suvidha-all-caps .hg-button-enter {
+  background: #138808 !important; /* Indian Green */
+  color: white !important;
+  flex-grow: 2.5 !important;
+  font-weight: 900 !important;
+}
+
+.suvidha-all-caps .hg-button-enter:active {
+  background: #0F6906 !important;
+}
 }

@@ -14,10 +14,12 @@
     "firebase": "^12.8.0",
     "framer-motion": "^12.26.2",
     "lucide-react": "^0.562.0",
+    "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.12.0",
-    "recharts": "^3.6.0"
+    "recharts": "^3.6.0",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

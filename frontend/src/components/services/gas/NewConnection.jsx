@@ -5,6 +5,7 @@ import ProgressBar from "../../common/ProgressBar";
 import DocumentUpload from "../../common/DocumentUpload";
 import { generateApplicationNumber } from "../../../utils/generateApplicationNumber";
 import { useNotification } from "../../../hooks/useNotification";
+import { useKeyboard } from "../../../context/KeyboardContext"; // 1. Import Keyboard Hook
 import statesData from "../../../data/states-and-districts.json";
 
 const steps = [
@@ -31,6 +32,7 @@ const initialForm = {
 const GasNewConnection = () => {
   const location = useLocation();
   const notify = useNotification();
+  const { openKeyboard } = useKeyboard(); // 2. Destructure openKeyboard
 
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState(initialForm);
@@ -173,31 +175,45 @@ const GasNewConnection = () => {
             className="bg-white rounded-2xl shadow-lg p-8 mt-6"
           >
 
-            {/* STEP 1 */}
+            {/* STEP 1: Applicant Details */}
             {step === 0 && (
               <>
-                <input name="name" placeholder="Full Name" className="gov-input mb-4"
-                  value={formData.name} onChange={handleChange} />
+                <input 
+                  name="name" 
+                  placeholder="Full Name" 
+                  className="gov-input mb-4"
+                  value={formData.name} 
+                  onChange={handleChange}
+                  onFocus={(e) => openKeyboard(e, "text")} // Text Keyboard
+                  autoComplete="off"
+                />
                 <input disabled className="gov-input mb-4 bg-gray-100"
                   value={formData.phone} />
-                <input name="aadhaar" maxLength={12} className="gov-input"
+                <input 
+                  name="aadhaar" 
+                  maxLength={12} 
+                  className="gov-input"
                   placeholder="Aadhaar Number"
                   value={formData.aadhaar}
+                  onFocus={(e) => openKeyboard(e, "numeric")} // Numeric Keyboard
+                  autoComplete="off"
                   onChange={(e) =>
                     /^\d*$/.test(e.target.value) &&
                     setFormData({ ...formData, aadhaar: e.target.value })
-                  } />
+                  } 
+                />
+                {errors.aadhaar && <p className="text-red-500 text-xs mt-1">{errors.aadhaar}</p>}
               </>
             )}
 
-            {/* STEP 2 */}
+            {/* STEP 2: Address Details */}
             {step === 1 && (
               <>
                 <select className="gov-input mb-4"
                   value={formData.state} onChange={handleStateChange}>
                   <option value="">Select State</option>
                   {statesData.states.map(s => (
-                    <option key={s.state}>{s.state}</option>
+                    <option key={s.state} value={s.state}>{s.state}</option>
                   ))}
                 </select>
 
@@ -209,18 +225,24 @@ const GasNewConnection = () => {
                   }>
                   <option value="">Select District</option>
                   {districts.map(d => (
-                    <option key={d}>{d}</option>
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
 
-                <textarea name="address" rows="3" className="gov-input"
+                <textarea 
+                  name="address" 
+                  rows="3" 
+                  className="gov-input"
                   placeholder="Full Address"
                   value={formData.address}
-                  onChange={handleChange} />
+                  onChange={handleChange}
+                  onFocus={(e) => openKeyboard(e, "text")} // Text Keyboard
+                  autoComplete="off"
+                />
               </>
             )}
 
-            {/* STEP 3 */}
+            {/* STEP 3: Gas Connection Details */}
             {step === 2 && (
               <>
                 <input disabled className="gov-input mb-4 bg-gray-100"
@@ -229,22 +251,22 @@ const GasNewConnection = () => {
                 <select name="usageType" className="gov-input mb-4"
                   value={formData.usageType} onChange={handleChange}>
                   <option value="">Usage Type</option>
-                  <option>Domestic</option>
-                  <option>Commercial</option>
+                  <option value="Domestic">Domestic</option>
+                  <option value="Commercial">Commercial</option>
                 </select>
 
                 {formData.connectionType === "LPG" && (
                   <select name="cylinderType" className="gov-input"
                     value={formData.cylinderType} onChange={handleChange}>
                     <option value="">Cylinder Type</option>
-                    <option>14.2 kg</option>
-                    <option>5 kg</option>
+                    <option value="14.2 kg">14.2 kg</option>
+                    <option value="5 kg">5 kg</option>
                   </select>
                 )}
               </>
             )}
 
-            {/* STEP 4 */}
+            {/* STEP 4: Documents */}
             {step === 3 && (
               <DocumentUpload
                 onChange={(docs) =>
@@ -253,45 +275,67 @@ const GasNewConnection = () => {
               />
             )}
 
-            {/* STEP 5 REVIEW */}
+            {/* STEP 5: Review */}
             {step === 4 && !applicationNo && (
-              <>
+              <div className="space-y-3">
                 <p><b>Name:</b> {formData.name}</p>
                 <p><b>Connection:</b> {formData.connectionType}</p>
                 <p><b>Usage:</b> {formData.usageType}</p>
+                <p><b>Address:</b> {formData.address}, {formData.district}, {formData.state}</p>
 
-                <label className="flex gap-3 mt-6">
+                <label className="flex gap-3 mt-6 items-center cursor-pointer">
                   <input type="checkbox"
+                    className="w-5 h-5"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)} />
-                  <span className="text-sm">
+                  <span className="text-sm text-gray-700">
                     I confirm that the above information is correct.
                   </span>
                 </label>
-              </>
+              </div>
             )}
 
-            {/* SUCCESS */}
+            {/* SUCCESS MESSAGE */}
             {applicationNo && (
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-green-700">
+              <div className="text-center py-10">
+                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-green-700">
                   Application Submitted
                 </h2>
-                <p className="font-mono mt-2 text-xl">{applicationNo}</p>
+                <p className="text-gray-600 mt-2 text-lg">Your Reference Number is:</p>
+                <p className="font-mono mt-2 text-2xl bg-gray-100 inline-block px-4 py-2 rounded border border-gray-300">
+                  {applicationNo}
+                </p>
               </div>
             )}
           </motion.div>
         </AnimatePresence>
 
         {!applicationNo && (
-          <div className="flex justify-between mt-6">
-            <button onClick={prevStep} disabled={step === 0}>Back</button>
+          <div className="flex justify-between mt-8">
+            <button 
+              onClick={prevStep} 
+              disabled={step === 0}
+              className={`px-6 py-2 rounded-xl font-bold ${step === 0 ? 'opacity-0' : 'bg-white border hover:bg-gray-50'}`}
+            >
+              Back
+            </button>
             <div className="flex gap-4">
-              <button onClick={saveDraft}>Save Draft</button>
+              <button onClick={saveDraft} className="text-gray-500 font-semibold px-4">
+                Save Draft
+              </button>
               {step < 4 ? (
-                <button onClick={nextStep}>Next</button>
+                <button onClick={nextStep} className="bg-[#8C2F00] text-white px-8 py-2 rounded-xl font-bold shadow-md active:scale-95 transition-all">
+                  Next Step
+                </button>
               ) : (
-                <button onClick={handleSubmit}>Submit</button>
+                <button onClick={handleSubmit} className="bg-green-600 text-white px-8 py-2 rounded-xl font-bold shadow-md active:scale-95 transition-all">
+                  Submit Final
+                </button>
               )}
             </div>
           </div>
