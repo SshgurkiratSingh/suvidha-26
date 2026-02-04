@@ -28,10 +28,8 @@ module.exports = {
     },
   },
   filters: {
-    none: 'none',
-    grayscale: 'grayscale(1)',
+    none: "none",
+    grayscale: "grayscale(1)",
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [require("@tailwindcss/typography")],
 };

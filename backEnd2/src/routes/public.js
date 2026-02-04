@@ -135,9 +135,9 @@ router.get("/policies", async (req, res, next) => {
     }
 
     const where = department ? { department } : {};
-    const policies = await prisma.policy.findMany({ 
+    const policies = await prisma.policy.findMany({
       where,
-      orderBy: { createdAt: 'desc' } 
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(policies);

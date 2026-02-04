@@ -10,9 +10,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", 
-    methods: ["GET", "POST"]
-  }
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
 });
 
 io.on("connection", (socket) => {
@@ -31,9 +31,11 @@ io.on("connection", (socket) => {
     io.to(data.appId).emit("file_uploaded", {
       docType: data.docType,
       fileUrl: data.fileUrl || "uploaded_via_mobile",
-      status: data.status || "UPLOADED" 
+      status: data.status || "UPLOADED",
     });
-    console.log(`Relayed upload event for AppID: ${data.appId}, DocType: ${data.docType}`);
+    console.log(
+      `Relayed upload event for AppID: ${data.appId}, DocType: ${data.docType}`,
+    );
   });
 
   socket.on("disconnect", () => {

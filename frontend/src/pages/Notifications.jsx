@@ -15,7 +15,7 @@ import {
   Building2,
   Info,
   Calendar,
-  AlertTriangle 
+  AlertTriangle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDateTime, formatDate } from "../utils/helpers";
@@ -33,12 +33,13 @@ const Notifications = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [advisoriesData, schemesData, policiesData, billsData] = await Promise.all([
-        publicAPI.getAdvisories(),
-        publicAPI.getSchemes(),
-        publicAPI.getPolicies(),
-        billsAPI.list().catch(() => []), 
-      ]);
+      const [advisoriesData, schemesData, policiesData, billsData] =
+        await Promise.all([
+          publicAPI.getAdvisories(),
+          publicAPI.getSchemes(),
+          publicAPI.getPolicies(),
+          billsAPI.list().catch(() => []),
+        ]);
 
       const advisoryList = Array.isArray(advisoriesData)
         ? advisoriesData
@@ -51,15 +52,17 @@ const Notifications = () => {
         : policiesData?.policies || [];
 
       // Filter unpaid bills for urgent attention
-      const unpaidBills = Array.isArray(billsData) ? billsData.filter(b => !b.isPaid) : [];
-      const urgentBills = unpaidBills.map(bill => ({
+      const unpaidBills = Array.isArray(billsData)
+        ? billsData.filter((b) => !b.isPaid)
+        : [];
+      const urgentBills = unpaidBills.map((bill) => ({
         id: `bill-${bill.id}`,
         type: "URGENT",
-        department: bill.serviceAccount?.department || 'UTILITY',
-        title: `⚠️ Urgent Attention Required: ${bill.serviceAccount?.department || 'Utility'} Bill`,
+        department: bill.serviceAccount?.department || "UTILITY",
+        title: `⚠️ Urgent Attention Required: ${bill.serviceAccount?.department || "Utility"} Bill`,
         description: `You have a pending bill of **₹${bill.amount}** due on **${new Date(bill.dueDate).toLocaleDateString()}**.  \nPlease pay immediately to avoid service interruption.`,
         date: bill.dueDate,
-        isUrgent: true
+        isUrgent: true,
       }));
 
       const advisories = advisoryList.map((item) => ({
@@ -81,7 +84,7 @@ const Notifications = () => {
         date: item.createdAt,
       }));
 
-      // Merge and shuffle or sort. 
+      // Merge and shuffle or sort.
       // Put Urgent Bills first, then Advisories, then Policies, then Schemes.
       const combined = [...urgentBills, ...advisories, ...policies, ...schemes];
       setNotifications(combined);
@@ -204,17 +207,21 @@ const Notifications = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden ${item.type === 'URGENT' ? 'ring-2 ring-red-100' : ''}`}
+                className={`bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden ${item.type === "URGENT" ? "ring-2 ring-red-100" : ""}`}
               >
                 {/* Left accent border for Advisories or Urgent */}
                 {(item.type === "ADVISORY" || item.type === "URGENT") && (
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${item.type === 'URGENT' ? 'bg-red-600' : 'bg-red-500'}`} />
+                  <div
+                    className={`absolute left-0 top-0 bottom-0 w-1 ${item.type === "URGENT" ? "bg-red-600" : "bg-red-500"}`}
+                  />
                 )}
 
                 <div className="flex items-start gap-4">
                   <div
                     className={`p-3 rounded-full flex-shrink-0 ${
-                      item.type === "ADVISORY" || item.type === "URGENT" ? "bg-red-50" : "bg-gray-50"
+                      item.type === "ADVISORY" || item.type === "URGENT"
+                        ? "bg-red-50"
+                        : "bg-gray-50"
                     }`}
                   >
                     {getIcon(item.type, item.department)}
@@ -247,9 +254,11 @@ const Notifications = () => {
                     </h3>
 
                     <div className="text-gray-600 text-sm leading-relaxed mb-3 prose prose-sm max-w-none">
-                       <ReactMarkdown>
-                         {item.description || item.message || "Use caution and follow safety guidelines."}
-                       </ReactMarkdown>
+                      <ReactMarkdown>
+                        {item.description ||
+                          item.message ||
+                          "Use caution and follow safety guidelines."}
+                      </ReactMarkdown>
                     </div>
 
                     {/* Action / Context Info */}
