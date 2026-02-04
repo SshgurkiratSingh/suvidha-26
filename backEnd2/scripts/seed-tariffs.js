@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-import "dotenv/config";
-
-const prisma = new PrismaClient();
+require("dotenv").config();
+const { prisma } = require("../src/prisma");
 
 const tariffs = [
   // ELECTRICITY Tariffs

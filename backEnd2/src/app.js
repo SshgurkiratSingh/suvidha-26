@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const publicRoutes = require("./routes/public");
 const authRoutes = require("./routes/auth");
 const citizenRoutes = require("./routes/citizen");
@@ -9,6 +10,7 @@ const grievanceRoutes = require("./routes/grievances");
 const specialRoutes = require("./routes/special");
 const adminAuthRoutes = require("./routes/adminAuth");
 const adminRoutes = require("./routes/admin");
+const aiRoutes = require("./routes/ai");
 const { prisma } = require("./prisma");
 
 const app = express();
@@ -20,9 +22,12 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
+
+// Serve uploaded documents statically
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -41,6 +46,7 @@ app.use("/api", grievanceRoutes);
 app.use("/api", specialRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api", aiRoutes);
 
 app.use(async (error, req, res, _next) => {
   console.error(error);

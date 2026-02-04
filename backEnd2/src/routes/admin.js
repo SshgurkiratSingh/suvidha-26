@@ -128,6 +128,76 @@ router.patch("/policies/:policyId", async (req, res, next) => {
   }
 });
 
+const multer = require("multer");
+const fs = require("fs");
+const pdf = require("pdf-parse");
+const path = require("path");
+
+// Multer config for Policy PDF uploads
+const upload = multer({
+  dest: path.join(__dirname, "../../uploads/"),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
+/**
+ * Upload a PDF Policy Document, extract text, and save as a Policy.
+ * This effectively adds it to the AI Knowledge Base (Context).
+ */
+router.post(
+  "/policies/upload-pdf",
+  upload.single("file"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { title, department, category } = req.body;
+
+      // Read and Parse PDF
+      const dataBuffer = fs.readFileSync(req.file.path);
+      const pdfData = await pdf(dataBuffer);
+      const extractedText = pdfData.text;
+
+      // Create Policy Entry
+      // We store the first ~1000 chars as description for display,
+      // but in a real vector system, we'd index the whole thing.
+      // For our buildGlobalContext(), it reads 'description'.
+      // We'll trust the description to hold the key info.
+      const description =
+        extractedText.substring(0, 1000) +
+        (extractedText.length > 1000 ? "..." : "");
+
+      const policy = await prisma.policy.create({
+        data: {
+          title: title || req.file.originalname,
+          description: description,
+          department: department || "MUNICIPAL",
+          category: category || "GENERAL",
+          documentUrl: `/uploads/${req.file.filename}`,
+          effectiveFrom: new Date(),
+        },
+      });
+
+      await logAudit({
+        actorType: "ADMIN",
+        actorId: req.admin.id,
+        action: "POLICY_UPLOADED_PDF",
+        metadata: { policyId: policy.id, filename: req.file.originalname },
+      });
+
+      res
+        .status(201)
+        .json({
+          message: "Policy uploaded and processed for AI Context",
+          policy,
+        });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 router.delete("/policies/:policyId", async (req, res, next) => {
   try {
     await prisma.policy.delete({
@@ -871,6 +941,128 @@ router.post("/test-data", async (req, res, next) => {
       applicationId: application.id,
       grievanceId: grievance.id,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==========================================
+// TARIFFS MANAGEMENT
+// ==========================================
+router.get("/tariffs", async (req, res, next) => {
+  try {
+    const tariffs = await prisma.tariff.findMany({
+      orderBy: { department: "asc" },
+    });
+    res.json(tariffs);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/tariffs", async (req, res, next) => {
+  try {
+    const { department, name, rate, unit, description, category } = req.body;
+    const tariff = await prisma.tariff.create({
+      data: {
+        department,
+        name,
+        rate: parseFloat(rate),
+        unit,
+        description,
+        category,
+      },
+    });
+    res.status(201).json(tariff);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/tariffs/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, rate, unit, description, category } = req.body;
+    const tariff = await prisma.tariff.update({
+      where: { id },
+      data: {
+        name,
+        rate: rate ? parseFloat(rate) : undefined,
+        unit,
+        description,
+        category,
+      },
+    });
+    res.json(tariff);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/tariffs/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.tariff.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==========================================
+// POLICIES MANAGEMENT
+// ==========================================
+router.get("/policies", async (req, res, next) => {
+  try {
+    const policies = await prisma.policy.findMany({
+      orderBy: { department: "asc" },
+    });
+    res.json(policies);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/policies", async (req, res, next) => {
+  try {
+    const { department, title, description, category } = req.body;
+    const policy = await prisma.policy.create({
+      data: {
+        department,
+        title,
+        description,
+        category,
+      },
+    });
+    res.status(201).json(policy);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/policies/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, description, category } = req.body;
+    const policy = await prisma.policy.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        category,
+      },
+    });
+    res.json(policy);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/policies/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.policy.delete({ where: { id } });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

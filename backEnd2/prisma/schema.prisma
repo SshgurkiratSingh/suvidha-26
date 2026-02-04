@@ -138,6 +138,7 @@ model Application {
   submittedAt DateTime          @default(now())
   schemeId    String?
   updatedAt   DateTime          @updatedAt
+  data        Json? // Flexible field for custom application data
 
   citizen   Citizen       @relation(fields: [citizenId], references: [id])
   scheme    PublicScheme? @relation(fields: [schemeId], references: [id])
@@ -152,6 +153,7 @@ model Grievance {
   status      ApplicationStatus
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  data        Json? // Flexible field for grievance details
 
   citizen   Citizen    @relation(fields: [citizenId], references: [id])
   documents Document[] @relation("GrievanceDocuments")
@@ -162,10 +164,24 @@ model Document {
   applicationId String?
   grievanceId   String?
   fileUrl       String
+  localPath     String?
+  extractedText String?  @db.Text
   uploadedAt    DateTime @default(now())
 
   application Application? @relation("ApplicationDocuments", fields: [applicationId], references: [id])
   grievance   Grievance?   @relation("GrievanceDocuments", fields: [grievanceId], references: [id])
+}
+
+model PublicService {
+  id                String      @id @default(uuid())
+  department        Department
+  serviceType       ServiceType
+  name              String
+  description       String?
+  fees              Float       @default(0)
+  requiredDocuments String[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model PublicScheme {

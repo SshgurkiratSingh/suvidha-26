@@ -1,11 +1,6 @@
 const express = require("express");
 const { Department } = require("@prisma/client");
 const { prisma } = require("../prisma");
-const {
-  servicesCatalog,
-  tariffsCatalog,
-  policiesCatalog,
-} = require("../data/publicCatalog");
 
 const router = express.Router();
 
@@ -23,26 +18,45 @@ router.get("/departments", (_req, res) => {
   res.json({ departments: Object.values(Department) });
 });
 
-router.get("/services", (req, res) => {
-  const department = resolveDepartment(req.query.department);
+router.get("/services", async (req, res, next) => {
+  try {
+    const department = resolveDepartment(req.query.department);
 
-  if (department === undefined) {
-    return res.status(400).json({ message: "Invalid department" });
-  }
+    if (department === undefined) {
+      return res.status(400).json({ message: "Invalid department" });
+    }
 
-  if (department) {
-    return res.json({
-      department,
-      services: servicesCatalog[department] || [],
+    const where = department ? { department } : {};
+    const services = await prisma.publicService.findMany({
+      where,
+      orderBy: { serviceType: "asc" },
     });
-  }
 
-  return res.json({
-    services: Object.entries(servicesCatalog).map(([dept, services]) => ({
+    if (department) {
+      return res.json({
+        department,
+        services,
+      });
+    }
+
+    // Group by department if no department specified
+    const grouped = services.reduce((acc, service) => {
+      if (!acc[service.department]) {
+        acc[service.department] = [];
+      }
+      acc[service.department].push(service);
+      return acc;
+    }, {});
+
+    const result = Object.entries(grouped).map(([dept, s]) => ({
       department: dept,
-      services,
-    })),
-  });
+      services: s,
+    }));
+
+    res.json({ services: result });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.get("/schemes", async (req, res, next) => {
@@ -63,54 +77,73 @@ router.get("/schemes", async (req, res, next) => {
   }
 });
 
-router.get("/schemes/:schemeId", async (req, res, next) => {
+router.get("/tariffs", async (req, res, next) => {
   try {
-    const scheme = await prisma.publicScheme.findUnique({
-      where: { id: req.params.schemeId },
-    });
+    const department = resolveDepartment(req.query.department);
 
-    if (!scheme) {
-      return res.status(404).json({ message: "Scheme not found" });
+    if (department === undefined) {
+      return res.status(400).json({ message: "Invalid department" });
     }
 
-    res.json(scheme);
+    const where = department ? { department } : {};
+    const tariffs = await prisma.tariff.findMany({ where });
+
+    // Helper to format tariff list into the object format expected by frontend
+    // Expected: { unitRate: 7.2, fixedCharge: 75, notes: "..." }
+    const formatTariff = (list) => {
+      const t = {};
+      const unitRate = list.find((i) => i.name === "Unit Rate");
+      const fixedCharge = list.find((i) => i.name === "Fixed Charge");
+
+      if (unitRate) t.unitRate = unitRate.rate;
+      if (fixedCharge) t.fixedCharge = fixedCharge.rate;
+      if (unitRate) t.notes = unitRate.description; // fallback desc
+      return t;
+    };
+
+    if (department) {
+      return res.json({
+        department,
+        tariff: formatTariff(tariffs),
+      });
+    }
+
+    // Group by department
+    const grouped = tariffs.reduce((acc, t) => {
+      if (!acc[t.department]) acc[t.department] = [];
+      acc[t.department].push(t);
+      return acc;
+    }, {});
+
+    const result = {};
+    for (const [dept, list] of Object.entries(grouped)) {
+      result[dept] = formatTariff(list);
+    }
+
+    res.json({ tariffs: result });
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/tariffs", (req, res) => {
-  const department = resolveDepartment(req.query.department);
+router.get("/policies", async (req, res, next) => {
+  try {
+    const department = resolveDepartment(req.query.department);
 
-  if (department === undefined) {
-    return res.status(400).json({ message: "Invalid department" });
-  }
+    if (department === undefined) {
+      return res.status(400).json({ message: "Invalid department" });
+    }
 
-  if (department) {
-    return res.json({
-      department,
-      tariff: tariffsCatalog[department] || null,
+    const where = department ? { department } : {};
+    const policies = await prisma.policy.findMany({ 
+      where,
+      orderBy: { createdAt: 'desc' } 
     });
+
+    res.json(policies);
+  } catch (error) {
+    next(error);
   }
-
-  return res.json({ tariffs: tariffsCatalog });
-});
-
-router.get("/policies", (req, res) => {
-  const department = resolveDepartment(req.query.department);
-
-  if (department === undefined) {
-    return res.status(400).json({ message: "Invalid department" });
-  }
-
-  if (department) {
-    return res.json({
-      department,
-      policies: policiesCatalog[department] || [],
-    });
-  }
-
-  return res.json({ policies: policiesCatalog });
 });
 
 router.get("/advisories", async (req, res, next) => {

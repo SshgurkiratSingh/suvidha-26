@@ -77,7 +77,76 @@ router.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
+);
+
+router.post(
+  "/payments/bulk-pay",
+  authenticateCitizen,
+  async (req, res, next) => {
+    try {
+      const { billIds } = req.body;
+
+      if (!billIds || !Array.isArray(billIds) || billIds.length === 0) {
+        return res.status(400).json({ message: "billIds array is required" });
+      }
+
+      // 1. Verify all bills belong to citizen and are unpaid
+      const bills = await prisma.bill.findMany({
+        where: {
+          id: { in: billIds },
+          serviceAccount: { citizenId: req.citizen.id },
+          isPaid: false,
+        },
+      });
+
+      if (bills.length !== billIds.length) {
+        return res.status(400).json({
+          message:
+            "Some bills are invalid, already paid, or do not belong to you.",
+        });
+      }
+
+      // 2. Process payments in a transaction
+      const totalAmount = bills.reduce((sum, b) => sum + b.amount, 0);
+
+      const results = await prisma.$transaction(async (tx) => {
+        const payments = [];
+
+        for (const bill of bills) {
+          // Create Payment Record
+          const payment = await tx.payment.create({
+            data: {
+              citizenId: req.citizen.id,
+              billId: bill.id,
+              amount: bill.amount,
+              status: PaymentStatus.SUCCESS, // Auto-mark success for kiosk demo
+              receiptNo: `REC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            },
+          });
+
+          // Update Bill Status
+          await tx.bill.update({
+            where: { id: bill.id },
+            data: { isPaid: true },
+          });
+
+          payments.push(payment);
+        }
+
+        return payments;
+      });
+
+      res.status(200).json({
+        message: "Bulk payment successful",
+        count: results.length,
+        totalAmount,
+        payments: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 );
 
 router.post(
@@ -117,7 +186,7 @@ router.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 router.get("/payments/history", authenticateCitizen, async (req, res, next) => {
@@ -156,7 +225,7 @@ router.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 module.exports = router;
