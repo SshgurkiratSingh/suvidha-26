@@ -53,25 +53,27 @@ const Tariffs = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-20">
       <Header />
 
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl">
+      <main className="flex-grow container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 bg-white p-8 rounded-2xl shadow-sm"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">
                 Service Tariffs
               </h1>
-              <p className="text-gray-600">
+              <p className="text-xl text-gray-600">
                 View current tariff rates for all departments
               </p>
             </div>
-            <FileText className="w-12 h-12 text-blue-600" />
+            <div className="bg-blue-50 p-4 rounded-full">
+              <FileText className="w-16 h-16 text-blue-600" />
+            </div>
           </div>
         </motion.div>
 
@@ -80,21 +82,23 @@ const Tariffs = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-lg shadow-md p-4 mb-6"
+          className="bg-white rounded-2xl shadow-md p-6 mb-8"
         >
-          <div className="flex items-center gap-4">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <span className="font-semibold text-gray-700">
-              Filter by Department:
-            </span>
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Filter className="w-8 h-8 text-gray-600" />
+              <span className="text-xl font-bold text-gray-700 whitespace-nowrap">
+                Filter by Department:
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               {departments.map((dept) => (
                 <button
                   key={dept}
                   onClick={() => setSelectedDepartment(dept)}
-                  className={`px-4 py-2 rounded-lg transition-all ${
+                  className={`px-6 py-4 rounded-xl text-lg font-bold transition-all active:scale-95 ${
                     selectedDepartment === dept
-                      ? "bg-blue-600 text-white"
+                      ? "bg-blue-600 text-white shadow-lg scale-105"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -112,62 +116,73 @@ const Tariffs = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white rounded-lg shadow-md p-8 text-center"
+            className="bg-white rounded-2xl shadow-md p-10 text-center"
           >
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">
+            <FileText className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+            <p className="text-gray-600 text-2xl font-medium">
               No tariffs found for the selected department.
             </p>
           </motion.div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {tariffs.map((tariff, index) => (
               <motion.div
                 key={tariff.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all border border-gray-100 flex flex-col h-full"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                <div className="p-8 flex-grow">
+                  <div className="flex justify-between items-start gap-4 mb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2">
                         {tariff.name}
                       </h3>
                       <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getDepartmentColor(tariff.department)}`}
+                        className={`inline-block px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide ${getDepartmentColor(tariff.department)}`}
                       >
                         {tariff.department}
                       </span>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
+                      <div className="text-4xl font-extrabold text-blue-600">
                         ₹{tariff.rate}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-lg text-gray-500 font-medium">
                         per {tariff.unit || "unit"}
                       </div>
                     </div>
                   </div>
 
                   {tariff.description && (
-                    <p className="text-gray-600 mb-4">{tariff.description}</p>
+                    <p className="text-gray-600 text-lg mb-4">
+                      {tariff.description}
+                    </p>
                   )}
 
-                  {tariff.category && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span className="font-semibold">Category:</span>
-                      <span>{tariff.category}</span>
-                    </div>
-                  )}
-
-                  {tariff.effectiveFrom && (
-                    <div className="mt-2 text-sm text-gray-500">
-                      Effective from:{" "}
-                      {new Date(tariff.effectiveFrom).toLocaleDateString()}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-3 mt-auto">
+                    {tariff.category && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg">
+                        <span className="text-sm font-semibold text-gray-500">
+                          Category:
+                        </span>
+                        <span className="text-base font-bold text-gray-700">
+                          {tariff.category}
+                        </span>
+                      </div>
+                    )}
+                    {tariff.effectiveFrom && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg">
+                        <span className="text-sm font-semibold text-gray-500">
+                          Effective:
+                        </span>
+                        <span className="text-base font-bold text-gray-700">
+                          {new Date(tariff.effectiveFrom).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}

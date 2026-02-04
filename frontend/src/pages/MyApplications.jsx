@@ -128,51 +128,55 @@ const MyApplications = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-8">
               {applications.map((app, index) => (
                 <motion.div
                   key={app.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-2xl shadow-md p-8 hover:shadow-xl transition-shadow border-2 border-transparent hover:border-gray-100"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     <div className="flex-1">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="flex items-start gap-5 mb-5">
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                           {getStatusIcon(app.status)}
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-800 capitalize">
+                          <h3 className="text-2xl font-bold text-gray-800 capitalize leading-tight mb-2">
                             {app.department?.toLowerCase()} -{" "}
                             {app.serviceType?.replace(/_/g, " ").toLowerCase()}
                           </h3>
-                          <p className="text-sm text-gray-500">
-                            Application ID:{" "}
-                            <span className="font-mono">
-                              {app.id.slice(0, 12)}...
-                            </span>
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Submitted:{" "}
-                            {new Date(app.submittedAt).toLocaleDateString(
-                              "en-IN",
-                              {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )}
-                          </p>
+                          <div className="space-y-1">
+                            <p className="text-lg text-gray-500">
+                              Application ID:{" "}
+                              <span className="font-mono text-gray-800 font-bold">
+                                {app.id.slice(0, 12)}...
+                              </span>
+                            </p>
+                            <p className="text-lg text-gray-500">
+                              Submitted:{" "}
+                              <span className="font-medium text-gray-800">
+                                {new Date(app.submittedAt).toLocaleDateString(
+                                  "en-IN",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  },
+                                )}
+                              </span>
+                            </p>
+                          </div>
                         </div>
                       </div>
 
                       {/* Status Badge */}
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-4 ml-20">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                            app.status
+                          className={`px-6 py-2 rounded-full text-lg font-bold ${getStatusColor(
+                            app.status,
                           )}`}
                         >
                           {formatStatus(app.status)}
@@ -180,23 +184,23 @@ const MyApplications = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                       <button
                         onClick={() => handleViewDetails(app)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                        className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white rounded-xl text-xl font-bold shadow-lg hover:bg-primary-hover active:scale-95 transition-all"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-6 h-6" />
                         View Details
                       </button>
                     </div>
                   </div>
 
-                  {/* Progress Timeline */}
-                  <div className="mt-6 pt-4 border-t">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
+                  {/* Progress Timeline - Scaled Up for Kiosk */}
+                  <div className="mt-8 pt-6 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-lg">
+                      <div className="flex items-center gap-3">
                         <div
-                          className={`w-3 h-3 rounded-full ${
+                          className={`w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center ${
                             [
                               "SUBMITTED",
                               "UNDER_PROCESS",
@@ -207,14 +211,28 @@ const MyApplications = () => {
                               "COMPLETED",
                             ].includes(app.status)
                               ? "bg-green-500"
-                              : "bg-gray-300"
+                              : "bg-gray-200"
                           }`}
-                        ></div>
-                        <span className="text-gray-600">Submitted</span>
+                        >
+                          {[
+                            "SUBMITTED",
+                            "UNDER_PROCESS",
+                            "DEMAND_NOTE_ISSUED",
+                            "PAYMENT_PENDING",
+                            "APPROVED",
+                            "DELIVERED",
+                            "COMPLETED",
+                          ].includes(app.status) && (
+                            <CheckCircle className="w-4 h-4 text-white p-0.5" />
+                          )}
+                        </div>
+                        <span className="text-gray-600 font-medium">
+                          Submitted
+                        </span>
                       </div>
-                      <div className="flex-1 h-1 bg-gray-200 mx-2">
+                      <div className="flex-1 h-3 bg-gray-100 mx-4 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-green-500 transition-all"
+                          className="h-full bg-green-500 transition-all rounded-full"
                           style={{
                             width: [
                               "UNDER_PROCESS",
@@ -224,14 +242,14 @@ const MyApplications = () => {
                               "DELIVERED",
                               "COMPLETED",
                             ].includes(app.status)
-                              ? "50%"
+                              ? "100%"
                               : "0%",
                           }}
                         ></div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <div
-                          className={`w-3 h-3 rounded-full ${
+                          className={`w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center ${
                             [
                               "UNDER_PROCESS",
                               "DEMAND_NOTE_ISSUED",
@@ -241,14 +259,27 @@ const MyApplications = () => {
                               "COMPLETED",
                             ].includes(app.status)
                               ? "bg-green-500"
-                              : "bg-gray-300"
+                              : "bg-gray-200"
                           }`}
-                        ></div>
-                        <span className="text-gray-600">Processing</span>
+                        >
+                          {[
+                            "UNDER_PROCESS",
+                            "DEMAND_NOTE_ISSUED",
+                            "PAYMENT_PENDING",
+                            "APPROVED",
+                            "DELIVERED",
+                            "COMPLETED",
+                          ].includes(app.status) && (
+                            <CheckCircle className="w-4 h-4 text-white p-0.5" />
+                          )}
+                        </div>
+                        <span className="text-gray-600 font-medium">
+                          Processing
+                        </span>
                       </div>
-                      <div className="flex-1 h-1 bg-gray-200 mx-2">
+                      <div className="flex-1 h-3 bg-gray-100 mx-4 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-green-500 transition-all"
+                          className="h-full bg-green-500 transition-all rounded-full"
                           style={{
                             width: [
                               "APPROVED",
@@ -260,19 +291,28 @@ const MyApplications = () => {
                           }}
                         ></div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <div
-                          className={`w-3 h-3 rounded-full ${
+                          className={`w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center ${
                             ["APPROVED", "DELIVERED", "COMPLETED"].includes(
-                              app.status
+                              app.status,
                             )
                               ? "bg-green-500"
                               : app.status === "REJECTED"
-                              ? "bg-red-500"
-                              : "bg-gray-300"
+                                ? "bg-red-500"
+                                : "bg-gray-200"
                           }`}
-                        ></div>
-                        <span className="text-gray-600">
+                        >
+                          {["APPROVED", "DELIVERED", "COMPLETED"].includes(
+                            app.status,
+                          ) && (
+                            <CheckCircle className="w-4 h-4 text-white p-0.5" />
+                          )}
+                          {app.status === "REJECTED" && (
+                            <XCircle className="w-4 h-4 text-white p-0.5" />
+                          )}
+                        </div>
+                        <span className="text-gray-600 font-medium">
                           {app.status === "REJECTED" ? "Rejected" : "Completed"}
                         </span>
                       </div>
@@ -318,7 +358,7 @@ const MyApplications = () => {
                   <p className="text-sm text-gray-600">Status</p>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                      selectedApp.status
+                      selectedApp.status,
                     )}`}
                   >
                     {formatStatus(selectedApp.status)}
@@ -343,7 +383,7 @@ const MyApplications = () => {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
-                      }
+                      },
                     )}
                   </p>
                 </div>
@@ -356,7 +396,7 @@ const MyApplications = () => {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
-                      }
+                      },
                     )}
                   </p>
                 </div>

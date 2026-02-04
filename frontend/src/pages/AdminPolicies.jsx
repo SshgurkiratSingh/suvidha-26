@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
@@ -14,6 +15,7 @@ const AdminPolicies = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState(null);
+  const [previewMode, setPreviewMode] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -275,18 +277,49 @@ const AdminPolicies = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    rows="4"
-                    required
-                  />
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Description *
+                    </label>
+                    <div className="flex bg-gray-100 rounded-lg p-1 text-xs font-medium">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMode(false)}
+                        className={`px-3 py-1 rounded-md transition-all ${!previewMode ? "bg-white shadow text-blue-600" : "text-gray-500"}`}
+                      >
+                        Write
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMode(true)}
+                        className={`px-3 py-1 rounded-md transition-all ${previewMode ? "bg-white shadow text-blue-600" : "text-gray-500"}`}
+                      >
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+
+                  {previewMode ? (
+                    <div className="w-full px-4 py-2 border rounded-lg bg-gray-50 min-h-[8rem] prose prose-sm max-w-none">
+                      <ReactMarkdown>
+                        {formData.description || "*No description provided*"}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      rows="4"
+                      placeholder="Supports Markdown (e.g., **bold**, - list)"
+                      required
+                    />
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
@@ -20,6 +21,11 @@ const AdminDashboard = () => {
   const [selectedGrievance, setSelectedGrievance] = useState(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [showGrievanceModal, setShowGrievanceModal] = useState(false);
+  // const [pendingPayments, setPendingPayments] = useState([]); // Moved to dedicated page
+
+  // Preview States
+  const [schemePreview, setSchemePreview] = useState(false);
+  const [advisoryPreview, setAdvisoryPreview] = useState(false);
 
   // Dropdown options
   const departments = [
@@ -79,6 +85,7 @@ const AdminDashboard = () => {
     department: "ELECTRICITY",
     serviceType: "NEW_CONNECTION",
     description: "",
+    data: "", // JSON string
   });
 
   useEffect(() => {
@@ -201,10 +208,21 @@ const AdminDashboard = () => {
 
   const handleCreateApplication = async () => {
     try {
+      let parsedData = undefined;
+      if (caseForm.data && caseForm.data.trim()) {
+        try {
+          parsedData = JSON.parse(caseForm.data);
+        } catch (e) {
+          error("Invalid JSON data format");
+          return;
+        }
+      }
+
       const result = await adminAPI.createApplication({
         mobileNumber: caseForm.mobileNumber,
         department: caseForm.department,
         serviceType: caseForm.serviceType,
+        data: parsedData,
       });
       success(`Application created: ${result.id}`);
     } catch (err) {
@@ -214,10 +232,21 @@ const AdminDashboard = () => {
 
   const handleCreateGrievance = async () => {
     try {
+      let parsedData = undefined;
+      if (caseForm.data && caseForm.data.trim()) {
+        try {
+          parsedData = JSON.parse(caseForm.data);
+        } catch (e) {
+          error("Invalid JSON data format");
+          return;
+        }
+      }
+
       const result = await adminAPI.createGrievance({
         mobileNumber: caseForm.mobileNumber,
         department: caseForm.department,
         description: caseForm.description,
+        data: parsedData,
       });
       success(`Grievance created: ${result.id}`);
     } catch (err) {
@@ -303,6 +332,12 @@ const AdminDashboard = () => {
               onClick={() => navigate("/admin/tariffs")}
             >
               Manage Tariffs
+            </button>
+            <button
+              className="gov-button-primary bg-orange-600 border-orange-600 hover:bg-orange-700 text-white"
+              onClick={() => navigate("/admin/payments")}
+            >
+              Payment Approvals
             </button>
           </div>
         </div>
@@ -487,17 +522,45 @@ const AdminDashboard = () => {
                     />
                   )}
                 </div>
-                <textarea
-                  className="gov-input"
-                  placeholder="Description"
-                  value={schemeForm.description}
-                  onChange={(e) =>
-                    setSchemeForm({
-                      ...schemeForm,
-                      description: e.target.value,
-                    })
-                  }
-                />
+
+                {/* Scheme Description Preview Toggle */}
+                <div className="flex justify-end mb-1 space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setSchemePreview(false)}
+                    className={`text-xs px-2 py-1 rounded ${!schemePreview ? "bg-gray-200 font-bold" : "text-gray-500"}`}
+                  >
+                    Write
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSchemePreview(true)}
+                    className={`text-xs px-2 py-1 rounded ${schemePreview ? "bg-gray-200 font-bold" : "text-gray-500"}`}
+                  >
+                    Preview
+                  </button>
+                </div>
+
+                {schemePreview ? (
+                  <div className="gov-input min-h-[50px] bg-gray-50 text-sm prose prose-sm max-w-none p-2">
+                    <ReactMarkdown>
+                      {schemeForm.description || "*No content*"}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <textarea
+                    className="gov-input"
+                    placeholder="Description (Markdown supported)"
+                    value={schemeForm.description}
+                    onChange={(e) =>
+                      setSchemeForm({
+                        ...schemeForm,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                )}
+
                 <textarea
                   className="gov-input"
                   placeholder="Eligibility"
@@ -535,17 +598,46 @@ const AdminDashboard = () => {
                     </option>
                   ))}
                 </select>
-                <textarea
-                  className="gov-input"
-                  placeholder="Message"
-                  value={advisoryForm.message}
-                  onChange={(e) =>
-                    setAdvisoryForm({
-                      ...advisoryForm,
-                      message: e.target.value,
-                    })
-                  }
-                />
+
+                {/* Advisory Message Preview Toggle */}
+                <div className="flex justify-end mb-1 space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setAdvisoryPreview(false)}
+                    className={`text-xs px-2 py-1 rounded ${!advisoryPreview ? "bg-gray-200 font-bold" : "text-gray-500"}`}
+                  >
+                    Write
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdvisoryPreview(true)}
+                    className={`text-xs px-2 py-1 rounded ${advisoryPreview ? "bg-gray-200 font-bold" : "text-gray-500"}`}
+                  >
+                    Preview
+                  </button>
+                </div>
+
+                {advisoryPreview ? (
+                  <div className="gov-input min-h-[80px] bg-gray-50 text-sm prose prose-sm max-w-none p-2">
+                    <ReactMarkdown>
+                      {advisoryForm.message || "*No content*"}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <textarea
+                    className="gov-input"
+                    placeholder="Message (Markdown supported)"
+                    rows={3}
+                    value={advisoryForm.message}
+                    onChange={(e) =>
+                      setAdvisoryForm({
+                        ...advisoryForm,
+                        message: e.target.value,
+                      })
+                    }
+                  />
+                )}
+
                 <input
                   type="date"
                   className="gov-input"
@@ -851,6 +943,18 @@ const AdminDashboard = () => {
                     setCaseForm({ ...caseForm, description: e.target.value })
                   }
                 />
+                {/* JSON Data Input */}
+                <div className="md:col-span-2">
+                  <textarea
+                    className="gov-input font-mono text-sm"
+                    placeholder="Additional JSON Data (Optional) - e.g. { 'ward': '12', 'priority': 'high' }"
+                    rows={2}
+                    value={caseForm.data}
+                    onChange={(e) =>
+                      setCaseForm({ ...caseForm, data: e.target.value })
+                    }
+                  />
+                </div>
               </div>
               <div className="flex flex-col md:flex-row gap-3">
                 <button
@@ -935,6 +1039,20 @@ const AdminDashboard = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Dynamic Data Display */}
+                {selectedApplication.data && (
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-sm font-bold text-gray-700 mb-2">
+                      Additional Details
+                    </p>
+                    <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono overflow-auto max-h-40">
+                      {typeof selectedApplication.data === "string"
+                        ? selectedApplication.data
+                        : JSON.stringify(selectedApplication.data, null, 2)}
+                    </pre>
+                  </div>
+                )}
 
                 {selectedApplication.documents &&
                   selectedApplication.documents.length > 0 && (
@@ -1055,10 +1173,27 @@ const AdminDashboard = () => {
 
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Description</p>
-                  <p className="text-gray-800 bg-gray-50 p-3 rounded">
-                    {selectedGrievance.description || "No description provided"}
-                  </p>
+                  <div className="text-gray-800 bg-gray-50 p-3 rounded prose prose-sm max-w-none">
+                    <ReactMarkdown>
+                      {selectedGrievance.description ||
+                        "No description provided"}
+                    </ReactMarkdown>
+                  </div>
                 </div>
+
+                {/* Dynamic Data Display */}
+                {selectedGrievance.data && (
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-sm font-bold text-gray-700 mb-2">
+                      Additional Details
+                    </p>
+                    <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono overflow-auto max-h-40">
+                      {typeof selectedGrievance.data === "string"
+                        ? selectedGrievance.data
+                        : JSON.stringify(selectedGrievance.data, null, 2)}
+                    </pre>
+                  </div>
+                )}
 
                 {selectedGrievance.documents &&
                   selectedGrievance.documents.length > 0 && (

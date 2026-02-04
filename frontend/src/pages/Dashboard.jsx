@@ -25,6 +25,7 @@ import {
   Search,
   TrendingUp,
   AlertTriangle,
+  Gift,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -179,6 +180,13 @@ const Dashboard = () => {
       color: "cyan",
     },
     {
+      title: "Schemes",
+      icon: Gift,
+      path: "/schemes",
+      category: "info",
+      color: "pink",
+    },
+    {
       title: "Profile",
       icon: User,
       path: "/profile",
@@ -261,17 +269,17 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-md p-6 mb-8"
+          className="bg-white rounded-2xl shadow-md p-6 mb-8"
         >
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
               <input
                 type="text"
                 placeholder="Search services and actions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full pl-14 pr-6 py-5 text-xl border border-gray-300 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
@@ -283,33 +291,48 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-6 mb-8"
+            className="bg-orange-50 border-l-8 border-orange-500 rounded-2xl p-8 mb-10 shadow-sm"
           >
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
+            <div className="flex items-start gap-6">
+              <div className="bg-orange-100 p-4 rounded-full">
+                <AlertTriangle className="w-8 h-8 text-orange-600" />
+              </div>
               <div className="flex-1">
-                <h3 className="font-bold text-orange-900 mb-2">
+                <h3 className="text-2xl font-bold text-orange-900 mb-4">
                   {notifications.filter((n) => n.isOverdue).length > 0
                     ? "⚠️ Urgent Attention Required"
                     : "📋 Pending Actions"}
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {notifications.slice(0, 3).map((notif) => (
                     <div
                       key={notif.id}
-                      className={`p-3 rounded-lg ${notif.isOverdue ? "bg-red-100" : "bg-orange-100"}`}
+                      className={`p-5 rounded-xl border flex justify-between items-center ${notif.isOverdue ? "bg-red-50 border-red-100" : "bg-white border-orange-100"}`}
                     >
-                      <p className="font-semibold text-sm">{notif.title}</p>
-                      <p className="text-xs text-gray-700">{notif.message}</p>
+                      <div>
+                        <p className="font-bold text-lg text-gray-800">
+                          {notif.title}
+                        </p>
+                        <p className="text-gray-600 text-base mt-1">
+                          {notif.message}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => navigate("/all-bills")}
+                        className="px-6 py-2 bg-white border border-gray-200 shadow-sm rounded-lg font-bold text-primary hover:bg-gray-50 uppercase tracking-wide text-sm"
+                      >
+                        Action
+                      </button>
                     </div>
                   ))}
                 </div>
                 {notifications.length > 3 && (
                   <button
                     onClick={() => navigate("/all-bills")}
-                    className="mt-3 text-sm text-orange-700 font-semibold hover:underline"
+                    className="mt-4 text-lg text-orange-700 font-bold hover:underline flex items-center gap-2"
                   >
-                    View all {notifications.length} notifications →
+                    View all {notifications.length} notifications{" "}
+                    <TrendingUp size={20} />
                   </button>
                 )}
               </div>
@@ -318,44 +341,51 @@ const Dashboard = () => {
         )}
 
         {/* Quick Actions */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Quick Actions</h2>
-            <div className="flex gap-2 flex-wrap">
+        <div className="mb-10">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+            <h2 className="text-3xl font-bold text-gray-800">Quick Actions</h2>
+            <div className="flex gap-3 flex-wrap">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-5 py-3 rounded-xl text-lg font-medium transition-all transform active:scale-95 ${
                     activeCategory === cat.id
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-primary text-white shadow-lg"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                   }`}
                 >
+                  {cat.icon && (
+                    <cat.icon className="inline-block w-5 h-5 mr-2 -mt-1" />
+                  )}
                   {cat.label}
                 </button>
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredQuickActions.map((action, index) => (
               <motion.button
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(action.path)}
-                className={`p-6 rounded-xl shadow-md hover:shadow-xl transition-all ${getColorClasses(action.color)}`}
+                className={`flex flex-col items-center justify-center p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all border-2 border-transparent ${getColorClasses(action.color)}`}
               >
-                <action.icon className="w-8 h-8 mb-3 mx-auto" />
-                <p className="font-semibold text-sm">{action.title}</p>
+                <div className="bg-white/80 p-4 rounded-full mb-4 shadow-sm">
+                  <action.icon className="w-10 h-10" />
+                </div>
+                <p className="font-bold text-xl text-center leading-tight">
+                  {action.title}
+                </p>
               </motion.button>
             ))}
           </div>
           {filteredQuickActions.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 text-lg">
               No actions found matching your search
             </div>
           )}

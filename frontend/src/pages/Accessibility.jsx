@@ -1,43 +1,84 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
+import { useAccessibility } from "../context/AccessibilityContext";
 import {
   Accessibility as AccessibilityIcon,
   Volume2,
+  VolumeX,
   Contrast,
   Languages,
-  Headphones,
+  Type,
+  CheckCircle2,
 } from "lucide-react";
 
 const Accessibility = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const {
+    highContrast,
+    setHighContrast,
+    speechEnabled,
+    setSpeechEnabled,
+    fontSize,
+    setFontSize,
+    speak,
+  } = useAccessibility();
+
+  const toggleSpeech = () => {
+    setSpeechEnabled(!speechEnabled);
+    if (!speechEnabled) {
+      const u = new SpeechSynthesisUtterance("Text to speech enabled");
+      window.speechSynthesis.speak(u);
+    }
+  };
+
+  const cycleFontSize = () => {
+    if (fontSize === "normal") setFontSize("large");
+    else if (fontSize === "large") setFontSize("extra");
+    else setFontSize("normal");
+    if (speechEnabled) speak("Changing font size");
+  };
 
   const features = [
     {
-      icon: Volume2,
+      id: "speech",
+      icon: speechEnabled ? Volume2 : VolumeX,
       title: t("accessibilityFeatureAudio"),
-      desc: t("accessibilityFeatureAudioDetail"),
+      desc: speechEnabled
+        ? "Screen reader is Active"
+        : "Enable spoken feedback",
+      action: toggleSpeech,
+      active: speechEnabled,
     },
     {
+      id: "contrast",
       icon: Contrast,
       title: t("accessibilityFeatureContrast"),
-      desc: t("accessibilityFeatureContrastDetail"),
+      desc: highContrast ? "High Contrast Active" : "Enhance text visibility",
+      action: () => setHighContrast(!highContrast),
+      active: highContrast,
     },
     {
+      id: "font",
+      icon: Type,
+      title: "Text Size",
+      desc: `Current: ${fontSize === "normal" ? "Standard" : fontSize === "large" ? "Large" : "Extra Large"}`,
+      action: cycleFontSize,
+      active: fontSize !== "normal",
+    },
+    {
+      id: "lang",
       icon: Languages,
       title: t("accessibilityFeatureLanguage"),
       desc: t("accessibilityFeatureLanguageDetail"),
-    },
-    {
-      icon: Headphones,
-      title: t("accessibilityFeatureHelp"),
-      desc: t("accessibilityFeatureHelpDetail"),
+      action: () => navigate("/language"),
+      active: false,
     },
   ];
 
   return (
-    <main className="relative min-h-screen w-full bg-gradient-to-br from-primary via-primary-hover to-accent text-white">
+    <main className="relative min-h-screen w-full bg-gradient-to-br from-primary via-primary-hover to-accent text-white transition-colors duration-300">
       <div className="absolute inset-0 bg-black/50" />
       <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 py-10 md:px-8">
         <button
@@ -66,17 +107,31 @@ const Accessibility = () => {
             {t("accessibilityFeaturesTitle")}
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {features.map(({ icon: Icon, title, desc }) => (
-              <div
-                key={title}
-                className="rounded-2xl border border-white/10 bg-black/20 p-4"
+            {features.map(({ icon: Icon, title, desc, action, active, id }) => (
+              <button
+                key={id}
+                onClick={action}
+                className={`text-left rounded-2xl border p-4 transition-all active:scale-95 flex items-start justify-between group ${
+                  active
+                    ? "bg-white text-primary border-white"
+                    : "bg-black/20 border-white/10 hover:bg-white/10 text-white"
+                }`}
               >
-                <div className="inline-flex rounded-2xl bg-white/10 p-3">
-                  <Icon className="h-6 w-6" />
+                <div>
+                  <div
+                    className={`inline-flex rounded-2xl p-3 mb-3 ${active ? "bg-primary/10 text-primary" : "bg-white/10 text-white"}`}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <p className="text-xl font-bold">{title}</p>
+                  <p
+                    className={`mt-2 text-sm ${active ? "text-primary/70" : "text-white/75"}`}
+                  >
+                    {desc}
+                  </p>
                 </div>
-                <p className="mt-3 text-xl font-semibold">{title}</p>
-                <p className="mt-2 text-sm text-white/75">{desc}</p>
-              </div>
+                {active && <CheckCircle2 className="text-primary h-6 w-6" />}
+              </button>
             ))}
           </div>
         </section>

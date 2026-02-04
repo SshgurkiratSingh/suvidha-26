@@ -36,17 +36,19 @@ const TrackStatus = () => {
     <div className="min-h-screen flex flex-col bg-neutral">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">Track Status</h1>
-            <p className="text-gray-600">
-              Check the status of your applications or grievances
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8 text-center bg-white p-8 rounded-2xl shadow-sm">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Track Status
+            </h1>
+            <p className="text-xl text-gray-600">
+              Check the status of your applications or grievances instantly
             </p>
           </div>
 
           <form
             onSubmit={handleTrack}
-            className="bg-white rounded-xl shadow p-6 space-y-4"
+            className="bg-white rounded-2xl shadow-lg p-8 space-y-8"
           >
             <div className="flex gap-4">
               <button
@@ -56,13 +58,13 @@ const TrackStatus = () => {
                   setStatus(null);
                   setError(null);
                 }}
-                className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 ${
+                className={`flex-1 py-6 text-xl rounded-xl font-bold flex items-center justify-center gap-3 transition-all ${
                   type === "application"
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-700"
+                    ? "bg-primary text-white shadow-lg scale-105"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                 }`}
               >
-                <FileText className="w-5 h-5" />
+                <FileText className="w-8 h-8" />
                 Application
               </button>
               <button
@@ -72,24 +74,25 @@ const TrackStatus = () => {
                   setStatus(null);
                   setError(null);
                 }}
-                className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 ${
+                className={`flex-1 py-6 text-xl rounded-xl font-bold flex items-center justify-center gap-3 transition-all ${
                   type === "grievance"
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-700"
+                    ? "bg-primary text-white shadow-lg scale-105"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                 }`}
               >
-                <MessageSquare className="w-5 h-5" />
+                <MessageSquare className="w-8 h-8" />
                 Grievance
               </button>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xl font-bold text-gray-700 mb-4 ml-1">
+                Enter{" "}
                 {type === "application" ? "Application ID" : "Grievance ID"}
               </label>
               <input
                 type="text"
-                className="gov-input w-full"
+                className="w-full px-6 py-5 text-2xl font-mono text-center tracking-widest border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all uppercase placeholder:normal-case placeholder:tracking-normal"
                 placeholder={`Enter ${type} ID`}
                 value={id}
                 onChange={(e) => setId(e.target.value)}
@@ -99,23 +102,33 @@ const TrackStatus = () => {
 
             <button
               type="submit"
-              className="gov-button-primary w-full flex items-center justify-center gap-2"
+              className="w-full py-5 text-2xl font-bold text-white bg-primary rounded-xl shadow-lg hover:bg-primary-hover active:scale-95 transition-all flex items-center justify-center gap-3"
               disabled={loading}
             >
-              <Search className="w-5 h-5" />
-              {loading ? "Checking..." : "Track Status"}
+              {loading ? (
+                <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></span>
+              ) : (
+                <>
+                  <Search className="w-8 h-8" />
+                  Track Status
+                </>
+              )}
             </button>
 
             {status && (
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Current Status:</p>
-                <p className="text-2xl font-bold text-blue-900">{status}</p>
+              <div className="mt-8 p-8 bg-blue-50 border-2 border-blue-200 rounded-2xl flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <p className="text-lg text-gray-600 mb-2 font-medium uppercase tracking-wide">
+                  Current Status
+                </p>
+                <p className="text-4xl font-extrabold text-primary capitalize py-2 px-6 bg-white object-center rounded-xl shadow-sm border border-blue-100">
+                  {status}
+                </p>
               </div>
             )}
 
             {error && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mt-8 p-6 bg-red-50 border-2 border-red-200 rounded-2xl text-center">
+                <p className="text-xl font-bold text-red-600">{error}</p>
               </div>
             )}
           </form>

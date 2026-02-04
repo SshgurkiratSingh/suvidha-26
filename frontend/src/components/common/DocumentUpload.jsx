@@ -6,15 +6,20 @@ import {
   ExternalLink, Smartphone, Clock, AlertCircle, Wifi, WifiOff
 } from "lucide-react";
 import { io } from "socket.io-client";
+import { SOCKET_URL } from "../../utils/apiConfig";
 
 // Connect with a fallback to ensure the app doesn't crash if server is down
-const socket = io("http://10.212.152.190:3001", {
-  transports: ["websocket"],
-  reconnectionAttempts: 5
-}); 
+// Initialize with autoConnect: false to prevent unnecessary polling on other pages
+const socket = io(SOCKET_URL, {
+  transports: ["websocket", "polling"],
+  autoConnect: false,
+});
 
-const DocumentUpload = ({ requiredDocuments = ["Aadhaar", "Address Proof"], applicationId, onChange }) => {
-  const [method, setMethod] = useState(null); 
+const DocumentUpload = ({ 
+  applicationId = "TEMP_APP_ID", 
+  requiredDocuments = ["Identity Proof", "Address Proof"],
+  onUploadComplete 
+}) => {
   const [uploadStatus, setUploadStatus] = useState({}); 
   const [qrValue, setQrValue] = useState("");
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -28,30 +33,37 @@ const DocumentUpload = ({ requiredDocuments = ["Aadhaar", "Address Proof"], appl
 
   // Handle Real-Time Socket Connection & Status
   useEffect(() => {
+    // Only connect when this component is mounted
+    socket.connect();
+
     function onConnect() { setIsConnected(true); }
     function onDisconnect() { setIsConnected(false); }
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
+    
+    // Join a room specific to this application ID
+    socket.emit('join_kiosk_room', applicationId);
 
-    if (applicationId) {
-      socket.emit('join_kiosk_room', applicationId);
+    // Listen for file uploads from mobile
+    const handleFileUploaded = ({ docType, fileUrl }) => {
+       console.log("File received:", docType, fileUrl);
+       setUploadStatus(prev => ({
+         ...prev,
+         [docType]: 'UPLOADED'
+       }));
+       if(onUploadComplete) onUploadComplete(docType, fileUrl);
+    };
 
-      socket.on('sync_update', (data) => {
-        setUploadStatus(prev => {
-          const updated = { ...prev, [data.docType]: data.status };
-          onChange(updated);
-          return updated;
-        });
-      });
-    }
+    socket.on('file_uploaded', handleFileUploaded);
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
-      socket.off('sync_update');
+      socket.off('file_uploaded', handleFileUploaded);
+      socket.disconnect(); // Disconnect when component unmounts
     };
-  }, [applicationId, onChange]);
+  }, [applicationId, onUploadComplete]);
 
   const handleDigiLockerFetch = () => {
     const newStatus = { ...uploadStatus };
@@ -63,7 +75,7 @@ const DocumentUpload = ({ requiredDocuments = ["Aadhaar", "Address Proof"], appl
   const startQrSync = () => {
     setMethod('QR');
     // Pointing to your React Frontend Route we added in App.jsx
-    setQrValue(`http://10.212.152.190:3000/sync-upload/${applicationId}`);
+    setQrValue(`http://${window.location.hostname}:3000/sync-upload/${applicationId}`);
   };
 
   const handleOfflineSubmission = () => {

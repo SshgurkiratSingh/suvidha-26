@@ -5,9 +5,9 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { KeyboardProvider } from "./context/KeyboardContext"; 
-import GlobalKeyboard from "./components/GlobalKeyboard"; 
-
+import { KeyboardProvider } from "./context/KeyboardContext";
+import GlobalKeyboard from "./components/GlobalKeyboard";
+import IdleTimer from "./components/common/IdleTimer";
 // Pages
 import AttractScreen from "./pages/AttractScreen";
 import LanguageSelection from "./pages/LanguageSelection";
@@ -21,6 +21,7 @@ import AdminSchemes from "./pages/AdminSchemes";
 import AdminAdvisories from "./pages/AdminAdvisories";
 import AdminPolicies from "./pages/AdminPolicies";
 import AdminTariffs from "./pages/AdminTariffs";
+import AdminPayments from "./pages/AdminPayments";
 import NotFound from "./pages/NotFound";
 import Grievances from "./pages/Grievances";
 import TrackStatus from "./pages/TrackStatus";
@@ -28,9 +29,11 @@ import Accessibility from "./pages/Accessibility";
 import Profile from "./pages/Profile";
 import Tariffs from "./pages/Tariffs";
 import Policies from "./pages/Policies";
+import Schemes from "./pages/Schemes";
+import Notifications from "./pages/Notifications";
 
 // ADD THIS IMPORT
-import MobileUploadPortal from "./pages/MobileUploadPortal"; 
+import MobileUploadPortal from "./pages/MobileUploadPortal";
 
 // Service Hubs
 import ElectricityHub from "./components/services/electricity/ElectricityHub";
@@ -72,8 +75,9 @@ function App() {
   return (
     <KeyboardProvider>
       <Router>
+        <IdleTimer />
         <GlobalKeyboard />
-        
+
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<AttractScreen />} />
@@ -83,7 +87,7 @@ function App() {
           <Route path="/accessibility" element={<Accessibility />} />
           <Route path="/tariffs" element={<Tariffs />} />
           <Route path="/policies" element={<Policies />} />
-          
+
           {/* REGISTERED QR SYNC ROUTE */}
           <Route path="/sync-upload/:appId" element={<MobileUploadPortal />} />
 
@@ -107,7 +111,14 @@ function App() {
             path="/admin/advisories"
             element={ProtectedAdmin(AdminAdvisories)}
           />
-          <Route path="/admin/policies" element={ProtectedAdmin(AdminPolicies)} />
+          <Route
+            path="/admin/policies"
+            element={ProtectedAdmin(AdminPolicies)}
+          />
+          <Route
+            path="/admin/payments"
+            element={ProtectedAdmin(AdminPayments)}
+          />
           <Route path="/admin/tariffs" element={ProtectedAdmin(AdminTariffs)} />
 
           {/* ================= ELECTRICITY ROUTES ================= */}
@@ -142,6 +153,14 @@ function App() {
             element={Protected(SanitationBilling)}
           />
           <Route path="/solar" element={Protected(SolarHub)} />
+
+          {/* Public Information Routes */}
+          <Route path="/tariffs" element={Protected(Tariffs)} />
+          <Route path="/policies" element={Protected(Policies)} />
+          <Route path="/schemes" element={Protected(Schemes)} />
+          <Route path="/notifications" element={Protected(Notifications)} />
+          <Route path="/accessibility" element={Protected(Accessibility)} />
+          <Route path="/profile" element={Protected(Profile)} />
 
           {/* Billing */}
           <Route path="/all-bills" element={Protected(AllBills)} />

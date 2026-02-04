@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
@@ -17,6 +18,7 @@ const AdminSchemes = () => {
   const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editScheme, setEditScheme] = useState(null);
+  const [previewMode, setPreviewMode] = useState(false);
   const [editForm, setEditForm] = useState({
     title: "",
     description: "",
@@ -179,14 +181,50 @@ const AdminSchemes = () => {
                     setEditForm({ ...editForm, title: e.target.value })
                   }
                 />
-                <textarea
-                  className="gov-input w-full"
-                  placeholder="Description"
-                  value={editForm.description}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, description: e.target.value })
-                  }
-                />
+
+                {/* Description Editor */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-semibold text-gray-500 uppercase">
+                      Description
+                    </label>
+                    <div className="flex bg-gray-100 rounded p-0.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMode(false)}
+                        className={`px-2 py-1 rounded ${!previewMode ? "bg-white shadow" : ""}`}
+                      >
+                        Write
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMode(true)}
+                        className={`px-2 py-1 rounded ${previewMode ? "bg-white shadow" : ""}`}
+                      >
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {previewMode ? (
+                  <div className="gov-input w-full min-h-[100px] prose prose-sm max-w-none bg-gray-50 p-2 overflow-y-auto">
+                    <ReactMarkdown>
+                      {editForm.description || "*No description*"}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <textarea
+                    className="gov-input w-full"
+                    placeholder="Description"
+                    value={editForm.description}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, description: e.target.value })
+                    }
+                    rows={4}
+                  />
+                )}
+
                 <textarea
                   className="gov-input w-full"
                   placeholder="Eligibility"

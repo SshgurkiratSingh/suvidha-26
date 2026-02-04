@@ -357,6 +357,24 @@ export const paymentsAPI = {
       throw error.response?.data || error;
     }
   },
+
+  bulkPay: async (billIds) => {
+    try {
+      const response = await api.post("/payments/bulk-pay", { billIds });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  bulkPay: async (billIds) => {
+    try {
+      const response = await api.post("/payments/bulk-pay", { billIds });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 // ============================================
@@ -749,3 +767,15 @@ export const waterQualityAPI = {
 };
 
 export default api;
+
+// AI Chat
+export const aiAPI = {
+  chat: async (message) => {
+    try {
+      const response = await api.post("/chat", { message });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+};

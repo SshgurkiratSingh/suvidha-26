@@ -167,3 +167,17 @@ html {
   background: #0F6906 !important;
 }
 }
+/* Accessibility Modes */
+body.high-contrast {
+  filter: contrast(125%) saturate(120%);
+  background-color: #000 !important;
+}
+
+body.high-contrast * {
+  border-color: #fff !important;
+}
+
+body.high-contrast img, 
+body.high-contrast video {
+  filter: contrast(80%);
+}

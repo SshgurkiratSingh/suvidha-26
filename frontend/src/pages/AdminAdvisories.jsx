@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
@@ -17,6 +18,7 @@ const AdminAdvisories = () => {
   const [advisories, setAdvisories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editAdvisory, setEditAdvisory] = useState(null);
+  const [previewMode, setPreviewMode] = useState(false);
   const [editForm, setEditForm] = useState({ message: "", validTill: "" });
 
   useEffect(() => {
@@ -173,15 +175,46 @@ const AdminAdvisories = () => {
               </div>
 
               <div className="p-6 space-y-3">
-                <textarea
-                  className="gov-input w-full"
-                  placeholder="Message"
-                  rows={4}
-                  value={editForm.message}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, message: e.target.value })
-                  }
-                />
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Message
+                  </label>
+                  <div className="flex bg-gray-100 rounded p-0.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode(false)}
+                      className={`px-2 py-1 rounded ${!previewMode ? "bg-white shadow" : ""}`}
+                    >
+                      Write
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode(true)}
+                      className={`px-2 py-1 rounded ${previewMode ? "bg-white shadow" : ""}`}
+                    >
+                      Preview
+                    </button>
+                  </div>
+                </div>
+
+                {previewMode ? (
+                  <div className="gov-input w-full min-h-[8rem] prose prose-sm max-w-none bg-gray-50 p-2 overflow-y-auto">
+                    <ReactMarkdown>
+                      {editForm.message || "*No content*"}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <textarea
+                    className="gov-input w-full"
+                    placeholder="Message (Markdown supported)"
+                    rows={4}
+                    value={editForm.message}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, message: e.target.value })
+                    }
+                  />
+                )}
+
                 <input
                   type="date"
                   className="gov-input w-full"
