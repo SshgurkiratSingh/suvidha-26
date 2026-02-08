@@ -9,11 +9,17 @@ import AccessibilityWidget from "./AccessibilityWidget";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { t } = useLanguage();
   const [advisories, setAdvisories] = useState([]);
 
   useEffect(() => {
+    // Don't show advisories for admin users
+    if (isAdmin) {
+      setAdvisories([]);
+      return;
+    }
+
     const fetchAdvisories = async () => {
       try {
         const data = await publicAPI.getAdvisories();
@@ -26,7 +32,7 @@ const Header = () => {
       }
     };
     fetchAdvisories();
-  }, []);
+  }, [isAdmin]);
 
   const handleLogout = () => {
     logout();

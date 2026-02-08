@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -9,6 +10,7 @@ import { publicAPI } from "../components/services/api";
 import { Gift, Filter, ArrowRight, BookOpen } from "lucide-react";
 
 const Schemes = () => {
+  const navigate = useNavigate();
   const { error } = useNotification();
   const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,8 +191,11 @@ const Schemes = () => {
                       </div>
                     )}
 
-                    <button className="mt-auto w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex items-center justify-center gap-2 group">
-                      Apply Now
+                    <button
+                      onClick={() => navigate(`/schemes/${scheme.id}`)}
+                      className="mt-auto w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-black transition-colors flex items-center justify-center gap-2 group"
+                    >
+                      View Details & Apply
                       <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>

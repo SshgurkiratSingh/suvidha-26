@@ -11,6 +11,10 @@ const specialRoutes = require("./routes/special");
 const adminAuthRoutes = require("./routes/adminAuth");
 const adminRoutes = require("./routes/admin");
 const aiRoutes = require("./routes/ai");
+const unifiedApiRoutes = require("./routes/unifiedApi");
+const schemesRoutes = require("./routes/schemes");
+const testRoutes = require("./routes/test");
+const chatRoutes = require("./routes/chat");
 const { prisma } = require("./prisma");
 
 const app = express();
@@ -47,6 +51,10 @@ app.use("/api", specialRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api", aiRoutes);
+app.use("/api/unified", unifiedApiRoutes);
+app.use("/api/schemes", schemesRoutes);
+app.use("/api/test", testRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.use(async (error, req, res, _next) => {
   console.error(error);

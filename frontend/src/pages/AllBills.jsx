@@ -41,36 +41,21 @@ const AllBills = () => {
     setLoading(true);
     try {
       const result = await billsAPI.list();
-      // DEMO LOGIC: Check localStorage for any "Pending Approval" bills and override status
-      const pendingData = JSON.parse(
-        localStorage.getItem("pending_approval_bills") || "[]",
-      );
-      const pendingIds = pendingData.map((p) =>
-        typeof p === "object" && p !== null ? p.id : p,
-      );
-
-      const approvedIds = JSON.parse(
-        localStorage.getItem("approved_bills_demo") || "[]",
-      );
 
       const enhancedBills = result.map((b) => {
-        // If admin approved in demo, mark as paid
-        if (approvedIds.includes(b.id)) {
-          return {
-            ...b,
-            isPaid: true,
-            status: "PAID",
-            isPendingApproval: false,
-          };
-        }
+        const pendingPayment = b.payments?.find(
+          (p) => p.status === "INITIATED",
+        );
+        const isPending = !!pendingPayment;
+
         return {
           ...b,
-          status: pendingIds.includes(b.id)
-            ? "PENDING_APPROVAL"
-            : b.isPaid
-              ? "PAID"
+          status: b.isPaid
+            ? "PAID"
+            : isPending
+              ? "PENDING_APPROVAL"
               : "PENDING",
-          isPendingApproval: pendingIds.includes(b.id),
+          isPendingApproval: isPending,
         };
       });
 
@@ -107,46 +92,17 @@ const AllBills = () => {
   };
 
   const handlePaymentRequest = async () => {
-    // Demo Logic: "Send for Approval"
     setProcessing(true);
-
-    // Simulate network delay
-    setTimeout(() => {
-      const pendingData = JSON.parse(
-        localStorage.getItem("pending_approval_bills") || "[]",
-      );
-
-      // Create full objects for the new requests
-      const newRequests = bills
-        .filter((b) => selectedBills.includes(b.id))
-        .map((b) => ({
-          id: b.id,
-          amount: b.amount,
-          consumerId: b.serviceAccount?.consumerId || "N/A",
-          department: b.serviceAccount?.department || "UTILITY",
-          requestedAt: new Date().toISOString(),
-          status: "PENDING",
-        }));
-
-      // Merge keeping objects
-      const existingIds = new Set(
-        pendingData.map((p) => (typeof p === "object" ? p.id : p)),
-      );
-      const uniqueNewRequests = newRequests.filter(
-        (req) => !existingIds.has(req.id),
-      );
-      const finalPending = [...pendingData, ...uniqueNewRequests];
-
-      localStorage.setItem(
-        "pending_approval_bills",
-        JSON.stringify(finalPending),
-      );
-
-      setProcessing(false);
-      setShowPaymentModal(false);
+    try {
+      await paymentsAPI.requestApproval(selectedBills);
       success("Payment request sent to Admin for approval.");
+      setShowPaymentModal(false);
       loadBills();
-    }, 1500);
+    } catch (err) {
+      error(err.message || "Failed to send request");
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleBulkPay = async () => {

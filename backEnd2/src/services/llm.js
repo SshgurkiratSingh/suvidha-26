@@ -42,16 +42,20 @@ const getCachedContext = async () => {
 };
 
 const callBedrockLLM = async (prompt, context = "") => {
-  const token = os.env.AWS_BEARER_TOKEN_BEDROCK;
+  const token = process.env.AWS_BEARER_TOKEN_BEDROCK;
   if (!token) {
     // Graceful fallback for demo if token is missing
     console.warn("AWS_BEARER_TOKEN_BEDROCK missing. Returning mock response.");
     return "I am Suvidha AI. I strictly rely on AWS Bedrock, but it seems I am not configured correctly on the backend yet.";
   }
 
-  const bedrockEndpoint =
+  const endpoint =
     process.env.AWS_BEDROCK_ENDPOINT ||
-    "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-v2/invoke";
+    "https://bedrock-runtime.us-east-1.amazonaws.com";
+  const modelId = process.env.AWS_BEDROCK_MODEL_ID || "anthropic.claude-v2";
+  const bedrockEndpoint = endpoint.includes("/model/")
+    ? endpoint
+    : `${endpoint}/model/${modelId}/invoke`;
 
   try {
     const fullPrompt = `Context:\n${context}\n\nQuestion: ${prompt}`;

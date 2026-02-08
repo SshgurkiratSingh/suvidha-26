@@ -14,6 +14,7 @@ import {
   FileText,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "../utils/helpers";
+import { adminAPI } from "../components/services/api";
 
 const AdminPayments = () => {
   const navigate = useNavigate();
@@ -36,59 +37,58 @@ const AdminPayments = () => {
     return () => clearInterval(interval);
   }, [isAdmin, navigate]);
 
-  const loadData = () => {
-    const pData = JSON.parse(
-      localStorage.getItem("pending_approval_bills") || "[]",
-    );
-    // Filter out malformed entries (strings from old version) or convert on fly if we wanted,
-    // but for now let's just assume we only render the valid objects.
-    // As we just patched AllBills to save objects, any NEW request will be an object.
-    const validRequests = pData.filter(
-      (item) => typeof item === "object" && item !== null,
-    );
+  const loadData = async () => {
+    try {
+      const allPayments = await adminAPI.listPayments();
+      // Filter INITIATED as pending
+      const pending = allPayments.filter((p) => p.status === "INITIATED");
+      const done = allPayments.filter((p) => p.status !== "INITIATED");
 
-    // Sort by date desc
-    validRequests.sort(
-      (a, b) => new Date(b.requestedAt) - new Date(a.requestedAt),
-    );
+      setPendingRequests(
+        pending.map((p) => ({
+          id: p.id,
+          amount: p.amount,
+          consumerId: p.bill?.serviceAccount?.consumerId || "N/A",
+          department: p.bill?.serviceAccount?.department || "UTILITY",
+          requestedAt: p.createdAt,
+          citizenName: p.citizen?.fullName,
+        })),
+      );
 
-    setPendingRequests(validRequests);
-  };
-
-  const handleApprove = (id) => {
-    const approvedIds = JSON.parse(
-      localStorage.getItem("approved_bills_demo") || "[]",
-    );
-    if (!approvedIds.includes(id)) {
-      approvedIds.push(id);
-      localStorage.setItem("approved_bills_demo", JSON.stringify(approvedIds));
+      setHistory(
+        done.map((p) => ({
+          id: p.id,
+          amount: p.amount,
+          department: p.bill?.serviceAccount?.department || "UTILITY",
+          consumerId: p.bill?.serviceAccount?.consumerId || "N/A",
+          status: p.status,
+          date: p.createdAt,
+          citizenName: p.citizen?.fullName,
+        })),
+      );
+    } catch (err) {
+      console.error(err);
     }
-
-    // Remove from pending
-    const pData = JSON.parse(
-      localStorage.getItem("pending_approval_bills") || "[]",
-    );
-    const newPending = pData.filter(
-      (item) => (typeof item === "object" ? item.id : item) !== id,
-    );
-    localStorage.setItem("pending_approval_bills", JSON.stringify(newPending));
-
-    success("Payment approved successfully");
-    loadData();
   };
 
-  const handleReject = (id) => {
-    // Just remove from pending
-    const pData = JSON.parse(
-      localStorage.getItem("pending_approval_bills") || "[]",
-    );
-    const newPending = pData.filter(
-      (item) => (typeof item === "object" ? item.id : item) !== id,
-    );
-    localStorage.setItem("pending_approval_bills", JSON.stringify(newPending));
+  const handleApprove = async (id) => {
+    try {
+      await adminAPI.approvePayment(id, "APPROVE");
+      success("Payment approved successfully");
+      loadData();
+    } catch (err) {
+      error("Failed to approve payment");
+    }
+  };
 
-    success("Payment request rejected");
-    loadData();
+  const handleReject = async (id) => {
+    try {
+      await adminAPI.approvePayment(id, "REJECT");
+      success("Payment request rejected");
+      loadData();
+    } catch (err) {
+      error("Failed to reject payment");
+    }
   };
 
   return (

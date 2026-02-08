@@ -73,12 +73,15 @@ model Citizen {
   email        String?  @unique
   createdAt    DateTime @default(now())
 
-  sessions          Session[]
-  serviceAccounts   ServiceAccount[]
-  applications      Application[]
-  payments          Payment[]
-  grievances        Grievance[]
-  waterQualityTests WaterQualityTest[]
+  sessions           Session[]
+  serviceAccounts    ServiceAccount[]
+  applications       Application[]
+  payments           Payment[]
+  grievances         Grievance[]
+  waterQualityTests  WaterQualityTest[]
+  citizenProfile     CitizenProfile?
+  schemeApplications SchemeApplication[]
+  chatConversations  ChatConversation[]
 }
 
 model Session {
@@ -191,7 +194,10 @@ model PublicScheme {
   description String
   eligibility String
 
-  applications Application[]
+  applications        Application[]
+  eligibilityCriteria SchemeEligibilityCriteria[]
+  requiredDocuments   SchemeRequiredDocument[]
+  schemeApplications  SchemeApplication[]
 }
 
 model Advisory {
@@ -271,4 +277,219 @@ model ErrorReport {
   message   String
   stack     String?
   createdAt DateTime @default(now())
+}
+
+// ==================== ENHANCED SCHEME MODELS ====================
+
+enum QuestionType {
+  YES_NO
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  NUMBER
+  TEXT
+  DATE
+  RANGE
+}
+
+enum EligibilityStatus {
+  ELIGIBLE
+  NOT_ELIGIBLE
+  PARTIALLY_ELIGIBLE
+  PENDING_REVIEW
+}
+
+enum SchemeApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  DOCUMENTS_REQUIRED
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+model CitizenProfile {
+  id               String    @id @default(uuid())
+  citizenId        String    @unique
+  dateOfBirth      DateTime?
+  gender           String?
+  maritalStatus    String?
+  category         String? // General, OBC, SC, ST
+  religion         String?
+  occupation       String?
+  education        String?
+  monthlyIncome    Float?
+  annualIncome     Float?
+  aadhaarNumber    String?
+  panNumber        String?
+  rationCardType   String? // APL, BPL, AAY
+  rationCardNumber String?
+
+  // Address Information
+  permanentAddress String?
+  currentAddress   String?
+  district         String?
+  state            String?
+  pincode          String?
+
+  // Family Information
+  familyMembers      Int?
+  dependents         Int?
+  handicappedMembers Int?
+
+  // Property/Assets
+  landownership  String? // Landless, <1 acre, 1-2 acres, >2 acres
+  houseOwnership String? // Own, Rented, Government Quarter
+
+  // Other Information
+  bankAccountNumber String?
+  bankName          String?
+  ifscCode          String?
+
+  // Saved Eligibility Answers for Reuse
+  savedEligibilityAnswers Json? // { "questionText": "answer", ... } - Stores answers from eligibility surveys
+  consentToSaveAnswers    Boolean @default(false) // User consent to save answers for future schemes
+
+  additionalData Json? // Flexible field for custom data
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  citizen Citizen @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+}
+
+model SchemeEligibilityCriteria {
+  id              String       @id @default(uuid())
+  schemeId        String
+  questionText    String
+  questionType    QuestionType
+  options         Json? // For single/multiple choice: ["Option 1", "Option 2", ...]
+  validationRules Json? // { "min": 18, "max": 60 } or { "required": true, "matches": "^[0-9]{12}$" }
+  weightage       Int          @default(0) // For scoring-based eligibility
+  order           Int          @default(0) // Display order
+  isRequired      Boolean      @default(true)
+  helpText        String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  scheme PublicScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+}
+
+model SchemeRequiredDocument {
+  id              String   @id @default(uuid())
+  schemeId        String
+  documentName    String
+  description     String?
+  isMandatory     Boolean  @default(true)
+  acceptedFormats Json // ["pdf", "jpg", "png"]
+  maxSizeKB       Int      @default(2048)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  scheme PublicScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+}
+
+model SchemeApplication {
+  id                   String                  @id @default(uuid())
+  citizenId            String
+  schemeId             String
+  applicationNumber    String                  @unique
+  eligibilityAnswers   Json? // Store the answers from eligibility survey
+  eligibilityStatus    EligibilityStatus?
+  eligibilityScore     Float?
+  eligibilityCheckedAt DateTime? // When eligibility was checked
+  formData             Json? // Store form data (personal info, address, bank details, etc.)
+  status               SchemeApplicationStatus @default(DRAFT)
+  remarks              String?
+  rejectionReason      String?
+  submittedAt          DateTime?
+  reviewedAt           DateTime?
+  reviewedBy           String? // Admin ID
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  citizen   Citizen                     @relation(fields: [citizenId], references: [id])
+  scheme    PublicScheme                @relation(fields: [schemeId], references: [id])
+  documents SchemeApplicationDocument[]
+}
+
+model SchemeApplicationDocument {
+  id            String   @id @default(uuid())
+  applicationId String
+  documentName  String
+  filePath      String
+  fileSize      Int
+  mimeType      String
+  uploadedAt    DateTime @default(now())
+
+  application SchemeApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+// ========================================
+// CHATBOT & AI ASSISTANT MODELS
+// ========================================
+
+model ChatConversation {
+  id            String   @id @default(uuid())
+  citizenId     String?
+  sessionId     String   @unique
+  isAnonymous   Boolean  @default(false)
+  context       Json? // Stores conversation context, user preferences, etc.
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  citizen  Citizen?      @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([citizenId])
+  @@index([sessionId])
+}
+
+model ChatMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  role           String // 'user', 'assistant', 'system', 'function'
+  content        String   @db.Text
+  metadata       Json? // Store function calls, voice data, etc.
+  tokens         Int?
+  voiceUrl       String? // URL to voice recording if user used voice input
+  createdAt      DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model KnowledgeBase {
+  id         String   @id @default(uuid())
+  category   String // 'scheme', 'policy', 'faq', 'tariff', 'procedure', etc.
+  title      String
+  content    String   @db.Text
+  metadata   Json? // Store additional context like department, eligibility, etc.
+  embedding  String? // Store embedding as string (will be converted to vector)
+  sourceUrl  String?
+  department String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([category])
+  @@index([department])
+  @@index([isActive])
+}
+
+model ChatFunctionCall {
+  id             String   @id @default(uuid())
+  conversationId String
+  functionName   String
+  arguments      Json
+  result         Json?
+  status         String // 'pending', 'success', 'error'
+  error          String?
+  executedAt     DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([functionName])
 }

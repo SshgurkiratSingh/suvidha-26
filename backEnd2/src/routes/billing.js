@@ -13,7 +13,7 @@ router.get("/bills", authenticateCitizen, async (req, res, next) => {
           citizenId: req.citizen.id,
         },
       },
-      include: { serviceAccount: true },
+      include: { serviceAccount: true, payments: true },
       orderBy: { dueDate: "desc" },
     });
     res.json(bills);
@@ -221,6 +221,75 @@ router.get(
         amount: payment.amount,
         bill: payment.bill,
         createdAt: payment.createdAt,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Request Admin Approval for Payment (Bulk)
+router.post(
+  "/payments/request-approval",
+  authenticateCitizen,
+  async (req, res, next) => {
+    try {
+      const { billIds } = req.body;
+
+      if (!billIds || !Array.isArray(billIds) || billIds.length === 0) {
+        return res.status(400).json({ message: "billIds array is required" });
+      }
+
+      // 1. Verify all bills belong to citizen and are unpaid
+      const bills = await prisma.bill.findMany({
+        where: {
+          id: { in: billIds },
+          serviceAccount: { citizenId: req.citizen.id },
+          isPaid: false,
+        },
+      });
+
+      if (bills.length !== billIds.length) {
+        return res.status(400).json({
+          message:
+            "Some bills are invalid, already paid, or do not belong to you.",
+        });
+      }
+
+      // 2. Process payments in a transaction
+      const results = await prisma.$transaction(async (tx) => {
+        const payments = [];
+
+        for (const bill of bills) {
+          // Check if already pending?
+          const existing = await tx.payment.findFirst({
+            where: { billId: bill.id, status: PaymentStatus.INITIATED },
+          });
+
+          if (existing) {
+            payments.push(existing);
+            continue;
+          }
+
+          // Create Payment Record with INITIATED status
+          const payment = await tx.payment.create({
+            data: {
+              citizenId: req.citizen.id,
+              billId: bill.id,
+              amount: bill.amount,
+              status: PaymentStatus.INITIATED, // Pending Approval
+            },
+          });
+          payments.push(payment);
+        }
+
+        return payments;
+      });
+
+      res.status(200).json({
+        message: "Payment approval requested",
+        count: results.length,
+        payments: results,
       });
     } catch (error) {
       next(error);

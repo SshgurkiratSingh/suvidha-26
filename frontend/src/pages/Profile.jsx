@@ -5,11 +5,22 @@ import Footer from "../components/common/Footer";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import { citizenAPI } from "../components/services/api";
-import { User, Phone, Mail, Save, Edit } from "lucide-react";
+import {
+  User,
+  Phone,
+  Mail,
+  Save,
+  Edit,
+  Shield,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { API_BASE_URL } from "../utils/apiConfig";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, refreshUser } = useAuth();
+  const { user, isAdmin, refreshUser, citizenToken } = useAuth();
   const { success, error } = useNotification();
 
   const [form, setForm] = useState({
@@ -18,6 +29,8 @@ const Profile = () => {
     email: "",
   });
   const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+  const [showSavedAnswers, setShowSavedAnswers] = useState(false);
 
   useEffect(() => {
     if (!user || isAdmin) {
@@ -33,6 +46,15 @@ const Profile = () => {
           mobileNumber: profile.mobileNumber || "",
           email: profile.email || "",
         });
+
+        // Load scheme profile data for saved answers
+        const response = await fetch(`${API_BASE_URL}/api/schemes/profile/me`, {
+          headers: { Authorization: `Bearer ${citizenToken}` },
+        });
+        if (response.ok) {
+          const schemeProfile = await response.json();
+          setProfileData(schemeProfile);
+        }
       } catch (err) {
         error(err.message || "Failed to load profile");
       }
@@ -66,6 +88,66 @@ const Profile = () => {
       success("Profile updated");
     } catch (err) {
       error(err.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearSavedAnswers = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to clear all saved answers? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/schemes/profile/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${citizenToken}`,
+        },
+        body: JSON.stringify({
+          savedEligibilityAnswers: {},
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to clear saved answers");
+
+      setProfileData({ ...profileData, savedEligibilityAnswers: {} });
+      success("Saved answers cleared");
+    } catch (err) {
+      error(err.message || "Failed to clear saved answers");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleConsent = async () => {
+    try {
+      setLoading(true);
+      const newConsent = !profileData?.consentToSaveAnswers;
+
+      const response = await fetch(`${API_BASE_URL}/api/schemes/profile/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${citizenToken}`,
+        },
+        body: JSON.stringify({
+          consentToSaveAnswers: newConsent,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update consent");
+
+      setProfileData({ ...profileData, consentToSaveAnswers: newConsent });
+      success(newConsent ? "Consent enabled" : "Consent disabled");
+    } catch (err) {
+      error(err.message || "Failed to update consent");
     } finally {
       setLoading(false);
     }
@@ -144,6 +226,120 @@ const Profile = () => {
                 )}
               </button>
             </div>
+          </div>
+
+          {/* Saved Eligibility Answers Section */}
+          <div className="mt-10 pt-8 border-t-2 border-gray-200">
+            <div
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => setShowSavedAnswers(!showSavedAnswers)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Saved Scheme Answers
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Manage your saved eligibility survey responses
+                  </p>
+                </div>
+              </div>
+              {showSavedAnswers ? (
+                <ChevronUp className="w-6 h-6 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-6 h-6 text-gray-400" />
+              )}
+            </div>
+
+            {showSavedAnswers && (
+              <div className="mt-6 space-y-6">
+                {/* Consent Toggle */}
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                        Save Answers Automatically
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        When enabled, your eligibility survey answers are saved
+                        and used to pre-fill questions in future scheme
+                        applications, saving you time.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={profileData?.consentToSaveAnswers || false}
+                        onChange={toggleConsent}
+                        disabled={loading}
+                        className="sr-only peer"
+                      />
+                      <div className="w-14 h-8 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Saved Answers Display */}
+                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Your Saved Answers
+                    </h3>
+                    {profileData?.savedEligibilityAnswers &&
+                      Object.keys(profileData.savedEligibilityAnswers).length >
+                        0 && (
+                        <button
+                          onClick={clearSavedAnswers}
+                          disabled={loading}
+                          className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Clear All
+                        </button>
+                      )}
+                  </div>
+
+                  {profileData?.savedEligibilityAnswers &&
+                  Object.keys(profileData.savedEligibilityAnswers).length >
+                    0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {Object.entries(profileData.savedEligibilityAnswers).map(
+                        ([question, data], idx) => (
+                          <div
+                            key={idx}
+                            className="bg-white p-4 rounded-lg border border-gray-200"
+                          >
+                            <p className="font-medium text-gray-800 mb-1">
+                              {question}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <span className="font-semibold">Answer:</span>{" "}
+                              {String(data.answer)}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Saved:{" "}
+                              {new Date(data.savedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No saved answers yet</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Complete a scheme eligibility check and enable "Save
+                        answers" to see them here
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

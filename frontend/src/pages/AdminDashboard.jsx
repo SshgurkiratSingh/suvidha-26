@@ -295,189 +295,355 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-600">
-              Signed in as {user?.fullName || user?.email}
-            </p>
+      <main className="flex-1 container mx-auto px-6 py-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+                Admin Dashboard
+              </h1>
+              <p className="text-gray-600 text-lg flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Signed in as{" "}
+                <span className="font-semibold">
+                  {user?.fullName || user?.email}
+                </span>
+              </p>
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             <button
-              className="gov-button-secondary"
+              className="group relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               onClick={() => navigate("/admin/schemes")}
             >
-              Manage Schemes
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">📋</div>
+                <div className="font-semibold text-sm">Schemes</div>
+              </div>
             </button>
+
             <button
-              className="gov-button-secondary"
+              className="group relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              onClick={() => navigate("/admin/scheme-applications")}
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">📝</div>
+                <div className="font-semibold text-sm">Applications</div>
+              </div>
+            </button>
+
+            <button
+              className="group relative overflow-hidden bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               onClick={() => navigate("/admin/advisories")}
             >
-              Manage Advisories
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">📢</div>
+                <div className="font-semibold text-sm">Advisories</div>
+              </div>
             </button>
+
             <button
-              className="gov-button-secondary"
+              className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               onClick={() => navigate("/admin/policies")}
             >
-              Manage Policies
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">📜</div>
+                <div className="font-semibold text-sm">Policies</div>
+              </div>
             </button>
+
             <button
-              className="gov-button-secondary"
+              className="group relative overflow-hidden bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               onClick={() => navigate("/admin/tariffs")}
             >
-              Manage Tariffs
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">💰</div>
+                <div className="font-semibold text-sm">Tariffs</div>
+              </div>
             </button>
+
             <button
-              className="gov-button-primary bg-orange-600 border-orange-600 hover:bg-orange-700 text-white"
+              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               onClick={() => navigate("/admin/payments")}
             >
-              Payment Approvals
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">✅</div>
+                <div className="font-semibold text-sm">Payments</div>
+              </div>
+            </button>
+
+            <button
+              className="group relative overflow-hidden bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white px-4 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              onClick={() => navigate("/admin/bills")}
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative text-center">
+                <div className="text-2xl mb-1">🧾</div>
+                <div className="font-semibold text-sm">Bills</div>
+              </div>
             </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-white p-6 rounded-xl shadow">
-            Loading dashboard...
+          <div className="bg-white p-8 rounded-2xl shadow-xl text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading dashboard...</p>
           </div>
         ) : (
-          <div className="space-y-10">
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow">
-                <h2 className="text-xl font-semibold mb-4">Today Summary</h2>
-                <div className="space-y-2 text-gray-700">
-                  <p>New citizens: {summary?.citizens ?? 0}</p>
-                  <p>Payments: {summary?.payments ?? 0}</p>
-                  <p>Applications: {summary?.applications ?? 0}</p>
-                  <p>Grievances: {summary?.grievances ?? 0}</p>
+          <div className="space-y-8">
+            {/* Summary Cards */}
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-transform">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-4xl">👥</div>
+                  <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                    TODAY
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {summary?.citizens ?? 0}
+                </div>
+                <div className="text-blue-100 text-sm font-medium">
+                  New Citizens
                 </div>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow">
-                <h2 className="text-xl font-semibold mb-4">Kiosk Usage</h2>
-                <p className="text-gray-700">
-                  Active sessions today: {kioskUsage?.sessions ?? 0}
-                </p>
+
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-transform">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-4xl">💳</div>
+                  <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                    TODAY
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {summary?.payments ?? 0}
+                </div>
+                <div className="text-emerald-100 text-sm font-medium">
+                  Payments
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-transform">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-4xl">📋</div>
+                  <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                    TODAY
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {summary?.applications ?? 0}
+                </div>
+                <div className="text-purple-100 text-sm font-medium">
+                  Applications
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-2xl shadow-xl text-white transform hover:scale-105 transition-transform">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-4xl">📢</div>
+                  <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                    TODAY
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  {summary?.grievances ?? 0}
+                </div>
+                <div className="text-orange-100 text-sm font-medium">
+                  Grievances
+                </div>
               </div>
             </section>
 
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow">
-                <h2 className="text-xl font-semibold mb-4">
-                  Recent Applications
-                </h2>
-                <div className="space-y-3">
-                  {applications.map((app) => (
-                    <div
-                      key={app.id}
-                      className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleViewApplication(app)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold">
-                            {app.department} • {app.serviceType}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Citizen: {app.citizen?.fullName || "N/A"}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Mobile: {app.citizen?.mobileNumber || "N/A"}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            app.status === "APPROVED"
-                              ? "bg-green-100 text-green-700"
-                              : app.status === "REJECTED"
-                                ? "bg-red-100 text-red-700"
-                                : app.status === "UNDER_PROCESS"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {app.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  {!applications.length && (
-                    <p className="text-gray-500">No applications yet.</p>
-                  )}
+            {/* Kiosk Usage */}
+            <section className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center text-2xl">
+                  🖥️
                 </div>
-                {applications.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Kiosk Usage
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Real-time activity monitoring
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-5xl font-bold bg-gradient-to-r from-cyan-600 to-cyan-800 bg-clip-text text-transparent">
+                  {kioskUsage?.sessions ?? 0}
+                </div>
+                <div className="text-gray-600 font-medium">
+                  active sessions today
+                </div>
+              </div>
+            </section>
+
+            {/* Recent Activity */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Applications */}
+              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-xl">
+                      📝
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">
+                        Recent Applications
+                      </h2>
+                      <p className="text-xs text-gray-500">
+                        Latest 6 submissions
+                      </p>
+                    </div>
+                  </div>
                   <button
-                    className="mt-4 text-primary hover:underline text-sm"
                     onClick={() => navigate("/admin/applications")}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-semibold hover:underline"
                   >
-                    View all applications →
+                    View All →
                   </button>
-                )}
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow">
-                <h2 className="text-xl font-semibold mb-4">
-                  Recent Grievances
-                </h2>
-                <div className="space-y-3">
-                  {grievances.map((grievance) => (
-                    <div
-                      key={grievance.id}
-                      className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleViewGrievance(grievance)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold">
-                            {grievance.department}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Citizen: {grievance.citizen?.fullName || "N/A"}
-                          </p>
-                          <p className="text-sm text-gray-600 truncate max-w-xs">
-                            {grievance.description || "No description"}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            grievance.status === "COMPLETED"
-                              ? "bg-green-100 text-green-700"
-                              : grievance.status === "REJECTED"
-                                ? "bg-red-100 text-red-700"
-                                : grievance.status === "UNDER_PROCESS"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {grievance.status}
-                        </span>
-                      </div>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {applications.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <div className="text-4xl mb-2">📭</div>
+                      <p>No applications yet</p>
                     </div>
-                  ))}
-                  {!grievances.length && (
-                    <p className="text-gray-500">No grievances yet.</p>
+                  ) : (
+                    applications.map((app) => (
+                      <div
+                        key={app.id}
+                        className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md cursor-pointer transition-all duration-200 group"
+                        onClick={() => handleViewApplication(app)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                              {app.department} • {app.serviceType}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              👤 {app.citizen?.fullName || "N/A"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              📱 {app.citizen?.mobileNumber || "N/A"}
+                            </p>
+                          </div>
+                          <span
+                            className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
+                              app.status === "APPROVED"
+                                ? "bg-green-100 text-green-700"
+                                : app.status === "REJECTED"
+                                  ? "bg-red-100 text-red-700"
+                                  : app.status === "UNDER_PROCESS"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {app.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-                {grievances.length > 0 && (
+              </div>
+
+              {/* Grievances */}
+              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-xl">
+                      📢
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">
+                        Recent Grievances
+                      </h2>
+                      <p className="text-xs text-gray-500">
+                        Latest 6 complaints
+                      </p>
+                    </div>
+                  </div>
                   <button
-                    className="mt-4 text-primary hover:underline text-sm"
                     onClick={() => navigate("/admin/grievances")}
+                    className="text-orange-600 hover:text-orange-700 text-sm font-semibold hover:underline"
                   >
-                    View all grievances →
+                    View All →
                   </button>
-                )}
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {grievances.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <div className="text-4xl mb-2">✅</div>
+                      <p>No grievances yet</p>
+                    </div>
+                  ) : (
+                    grievances.map((grievance) => (
+                      <div
+                        key={grievance.id}
+                        className="border border-gray-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md cursor-pointer transition-all duration-200 group"
+                        onClick={() => handleViewGrievance(grievance)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-800 group-hover:text-orange-600 transition-colors">
+                              {grievance.department}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              👤 {grievance.citizen?.fullName || "N/A"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {grievance.description || "No description"}
+                            </p>
+                          </div>
+                          <span
+                            className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
+                              grievance.status === "COMPLETED"
+                                ? "bg-green-100 text-green-700"
+                                : grievance.status === "REJECTED"
+                                  ? "bg-red-100 text-red-700"
+                                  : grievance.status === "UNDER_PROCESS"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {grievance.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </section>
 
+            {/* Create Forms Section */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow space-y-4">
-                <h2 className="text-xl font-semibold">Create Scheme</h2>
+              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                    ➕
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Create Scheme
+                  </h2>
+                </div>
                 <input
-                  className="gov-input"
+                  className="gov-input w-full mb-4"
                   placeholder="Title"
                   value={schemeForm.title}
                   onChange={(e) =>

@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const { ApplicationStatus } = require("@prisma/client");
 const { prisma } = require("../prisma");
 const { authenticateAdmin } = require("../middleware/auth");
@@ -186,12 +187,10 @@ router.post(
         metadata: { policyId: policy.id, filename: req.file.originalname },
       });
 
-      res
-        .status(201)
-        .json({
-          message: "Policy uploaded and processed for AI Context",
-          policy,
-        });
+      res.status(201).json({
+        message: "Policy uploaded and processed for AI Context",
+        policy,
+      });
     } catch (error) {
       next(error);
     }
@@ -467,7 +466,12 @@ router.patch("/grievances/:grievanceId/status", async (req, res, next) => {
 router.get("/payments", async (_req, res, next) => {
   try {
     const payments = await prisma.payment.findMany({
-      include: { citizen: true, bill: true },
+      include: {
+        citizen: true,
+        bill: {
+          include: { serviceAccount: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     res.json(payments);
@@ -493,16 +497,170 @@ router.get("/payments/:paymentId", async (req, res, next) => {
   }
 });
 
+router.post("/payments/:paymentId/approve", async (req, res, next) => {
+  try {
+    const { paymentId } = req.params;
+    const { action } = req.body; // "APPROVE" or "REJECT"
+
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { bill: true },
+    });
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    if (payment.status !== "INITIATED") {
+      return res
+        .status(400)
+        .json({ message: "Payment is not pending approval" });
+    }
+
+    if (action === "REJECT") {
+      const updated = await prisma.payment.update({
+        where: { id: paymentId },
+        data: { status: "FAILED" },
+      });
+      return res.json({ message: "Payment rejected", payment: updated });
+    }
+
+    // Approve
+    const updated = await prisma.$transaction([
+      prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: "SUCCESS",
+          receiptNo: `REC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        },
+      }),
+      prisma.bill.update({
+        where: { id: payment.billId },
+        data: { isPaid: true },
+      }),
+    ]);
+
+    res.json({ message: "Payment approved", payment: updated[0] });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== API KEY MANAGEMENT ====================
+
+router.get("/api-keys", async (req, res, next) => {
+  try {
+    const keys = await prisma.apiKey.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(keys);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/api-keys", async (req, res, next) => {
+  try {
+    const { department, serviceName } = req.body;
+
+    if (!department || !serviceName) {
+      return res.status(400).json({
+        message: "department and serviceName are required",
+      });
+    }
+
+    // Generate secure API key
+    const key = `sk_${department.toLowerCase()}_${crypto.randomBytes(32).toString("hex")}`;
+
+    const apiKey = await prisma.apiKey.create({
+      data: {
+        key,
+        department,
+        serviceName,
+      },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "API_KEY_CREATED",
+      metadata: { apiKeyId: apiKey.id, department, serviceName },
+    });
+
+    res.status(201).json(apiKey);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/api-keys/:id/revoke", async (req, res, next) => {
+  try {
+    const apiKey = await prisma.apiKey.update({
+      where: { id: req.params.id },
+      data: { isActive: false },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "API_KEY_REVOKED",
+      metadata: { apiKeyId: apiKey.id },
+    });
+
+    res.json(apiKey);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/api-keys/:id/activate", async (req, res, next) => {
+  try {
+    const apiKey = await prisma.apiKey.update({
+      where: { id: req.params.id },
+      data: { isActive: true },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "API_KEY_ACTIVATED",
+      metadata: { apiKeyId: apiKey.id },
+    });
+
+    res.json(apiKey);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/schemes", async (req, res, next) => {
   try {
-    const { department, title, description, eligibility } = req.body;
+    const {
+      department,
+      title,
+      description,
+      eligibility,
+      benefits,
+      howToApply,
+      importantDates,
+      contactInfo,
+    } = req.body;
 
     if (!department || !title || !description || !eligibility) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
     const scheme = await prisma.publicScheme.create({
-      data: { department, title, description, eligibility },
+      data: {
+        department,
+        title,
+        description,
+        eligibility,
+        benefits,
+        howToApply,
+        importantDates,
+        contactInfo,
+      },
     });
 
     await logAudit({
@@ -520,7 +678,15 @@ router.post("/schemes", async (req, res, next) => {
 
 router.patch("/schemes/:schemeId", async (req, res, next) => {
   try {
-    const { title, description, eligibility } = req.body;
+    const {
+      title,
+      description,
+      eligibility,
+      benefits,
+      howToApply,
+      importantDates,
+      contactInfo,
+    } = req.body;
 
     const scheme = await prisma.publicScheme.update({
       where: { id: req.params.schemeId },
@@ -528,6 +694,10 @@ router.patch("/schemes/:schemeId", async (req, res, next) => {
         title: title || undefined,
         description: description || undefined,
         eligibility: eligibility || undefined,
+        benefits: benefits || undefined,
+        howToApply: howToApply || undefined,
+        importantDates: importantDates || undefined,
+        contactInfo: contactInfo || undefined,
       },
     });
 
@@ -558,6 +728,354 @@ router.delete("/schemes/:schemeId", async (req, res, next) => {
     });
 
     res.json({ message: "Scheme deleted" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== SCHEME ELIGIBILITY CRITERIA MANAGEMENT ====================
+
+// Get eligibility criteria for a scheme
+router.get(
+  "/schemes/:schemeId/eligibility-criteria",
+  async (req, res, next) => {
+    try {
+      const criteria = await prisma.schemeEligibilityCriteria.findMany({
+        where: { schemeId: req.params.schemeId },
+        orderBy: { order: "asc" },
+      });
+
+      res.json(criteria);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Create eligibility criterion
+router.post(
+  "/schemes/:schemeId/eligibility-criteria",
+  async (req, res, next) => {
+    try {
+      const { schemeId } = req.params;
+      const {
+        questionText,
+        questionType,
+        options,
+        validationRules,
+        weightage,
+        order,
+        isRequired,
+        helpText,
+      } = req.body;
+
+      if (!questionText || !questionType) {
+        return res
+          .status(400)
+          .json({ message: "questionText and questionType are required" });
+      }
+
+      const criterion = await prisma.schemeEligibilityCriteria.create({
+        data: {
+          schemeId,
+          questionText,
+          questionType,
+          options,
+          validationRules,
+          weightage: weightage || 10,
+          order: order || 0,
+          isRequired: isRequired !== undefined ? isRequired : true,
+          helpText,
+        },
+      });
+
+      await logAudit({
+        actorType: "ADMIN",
+        actorId: req.admin.id,
+        action: "ELIGIBILITY_CRITERION_CREATED",
+        metadata: { schemeId, criterionId: criterion.id },
+      });
+
+      res.status(201).json(criterion);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Update eligibility criterion
+router.patch("/eligibility-criteria/:criterionId", async (req, res, next) => {
+  try {
+    const {
+      questionText,
+      questionType,
+      options,
+      validationRules,
+      weightage,
+      order,
+      isRequired,
+      helpText,
+    } = req.body;
+
+    const criterion = await prisma.schemeEligibilityCriteria.update({
+      where: { id: req.params.criterionId },
+      data: {
+        questionText: questionText || undefined,
+        questionType: questionType || undefined,
+        options: options !== undefined ? options : undefined,
+        validationRules:
+          validationRules !== undefined ? validationRules : undefined,
+        weightage: weightage !== undefined ? weightage : undefined,
+        order: order !== undefined ? order : undefined,
+        isRequired: isRequired !== undefined ? isRequired : undefined,
+        helpText: helpText !== undefined ? helpText : undefined,
+      },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "ELIGIBILITY_CRITERION_UPDATED",
+      metadata: { criterionId: criterion.id },
+    });
+
+    res.json(criterion);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete eligibility criterion
+router.delete("/eligibility-criteria/:criterionId", async (req, res, next) => {
+  try {
+    await prisma.schemeEligibilityCriteria.delete({
+      where: { id: req.params.criterionId },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "ELIGIBILITY_CRITERION_DELETED",
+      metadata: { criterionId: req.params.criterionId },
+    });
+
+    res.json({ message: "Eligibility criterion deleted" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== SCHEME REQUIRED DOCUMENTS MANAGEMENT ====================
+
+// Get required documents for a scheme
+router.get("/schemes/:schemeId/required-documents", async (req, res, next) => {
+  try {
+    const documents = await prisma.schemeRequiredDocument.findMany({
+      where: { schemeId: req.params.schemeId },
+      orderBy: { order: "asc" },
+    });
+
+    res.json(documents);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create required document
+router.post("/schemes/:schemeId/required-documents", async (req, res, next) => {
+  try {
+    const { schemeId } = req.params;
+    const {
+      documentName,
+      description,
+      isMandatory,
+      acceptedFormats,
+      maxSizeKB,
+      order,
+    } = req.body;
+
+    if (!documentName) {
+      return res.status(400).json({ message: "documentName is required" });
+    }
+
+    const document = await prisma.schemeRequiredDocument.create({
+      data: {
+        schemeId,
+        documentName,
+        description,
+        isMandatory: isMandatory !== undefined ? isMandatory : true,
+        acceptedFormats: acceptedFormats || ["pdf", "jpg", "png"],
+        maxSizeKB: maxSizeKB || 2048,
+        order: order || 0,
+      },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "REQUIRED_DOCUMENT_CREATED",
+      metadata: { schemeId, documentId: document.id },
+    });
+
+    res.status(201).json(document);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update required document
+router.patch("/required-documents/:documentId", async (req, res, next) => {
+  try {
+    const {
+      documentName,
+      description,
+      isMandatory,
+      acceptedFormats,
+      maxSizeKB,
+      order,
+    } = req.body;
+
+    const document = await prisma.schemeRequiredDocument.update({
+      where: { id: req.params.documentId },
+      data: {
+        documentName: documentName || undefined,
+        description: description !== undefined ? description : undefined,
+        isMandatory: isMandatory !== undefined ? isMandatory : undefined,
+        acceptedFormats:
+          acceptedFormats !== undefined ? acceptedFormats : undefined,
+        maxSizeKB: maxSizeKB !== undefined ? maxSizeKB : undefined,
+        order: order !== undefined ? order : undefined,
+      },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "REQUIRED_DOCUMENT_UPDATED",
+      metadata: { documentId: document.id },
+    });
+
+    res.json(document);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete required document
+router.delete("/required-documents/:documentId", async (req, res, next) => {
+  try {
+    await prisma.schemeRequiredDocument.delete({
+      where: { id: req.params.documentId },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "REQUIRED_DOCUMENT_DELETED",
+      metadata: { documentId: req.params.documentId },
+    });
+
+    res.json({ message: "Required document deleted" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== SCHEME APPLICATIONS MANAGEMENT ====================
+
+// Get all scheme applications
+router.get("/scheme-applications", async (req, res, next) => {
+  try {
+    const { status, schemeId } = req.query;
+
+    const where = {};
+    if (status) where.status = status;
+    if (schemeId) where.schemeId = schemeId;
+
+    const applications = await prisma.schemeApplication.findMany({
+      where,
+      include: {
+        citizen: true,
+        scheme: true,
+        documents: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(applications);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get single scheme application
+router.get("/scheme-applications/:applicationId", async (req, res, next) => {
+  try {
+    const application = await prisma.schemeApplication.findUnique({
+      where: { id: req.params.applicationId },
+      include: {
+        citizen: true,
+        scheme: {
+          include: {
+            eligibilityCriteria: true,
+            requiredDocuments: true,
+          },
+        },
+        documents: true,
+      },
+    });
+
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    res.json(application);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update scheme application status
+router.patch("/scheme-applications/:applicationId", async (req, res, next) => {
+  try {
+    const { status, remarks, rejectionReason } = req.body;
+
+    const updateData = {};
+    if (status) {
+      updateData.status = status;
+      if (status === "APPROVED") {
+        updateData.approvedAt = new Date();
+        updateData.reviewedAt = new Date();
+        updateData.reviewedBy = req.admin.id;
+      } else if (status === "REJECTED") {
+        updateData.reviewedAt = new Date();
+        updateData.reviewedBy = req.admin.id;
+        if (rejectionReason) updateData.rejectionReason = rejectionReason;
+      } else if (status === "UNDER_REVIEW") {
+        updateData.reviewedAt = new Date();
+        updateData.reviewedBy = req.admin.id;
+      }
+    }
+    if (remarks !== undefined) updateData.remarks = remarks;
+
+    const application = await prisma.schemeApplication.update({
+      where: { id: req.params.applicationId },
+      data: updateData,
+      include: {
+        citizen: true,
+        scheme: true,
+        documents: true,
+      },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "SCHEME_APPLICATION_UPDATED",
+      metadata: { applicationId: application.id, status },
+    });
+
+    res.json(application);
   } catch (error) {
     next(error);
   }
@@ -733,6 +1251,22 @@ router.post("/service-accounts", async (req, res, next) => {
   }
 });
 
+router.get("/bills", async (req, res, next) => {
+  try {
+    const bills = await prisma.bill.findMany({
+      include: {
+        serviceAccount: {
+          include: { citizen: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(bills);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/bills", async (req, res, next) => {
   try {
     const {
@@ -787,6 +1321,52 @@ router.post("/bills", async (req, res, next) => {
     });
 
     res.status(201).json(bill);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/bills/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { amount, dueDate, isPaid } = req.body;
+
+    const bill = await prisma.bill.update({
+      where: { id },
+      data: {
+        amount: amount !== undefined ? parseFloat(amount) : undefined,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        isPaid: isPaid !== undefined ? isPaid : undefined,
+      },
+    });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "BILL_UPDATED",
+      metadata: { billId: bill.id },
+    });
+
+    res.json(bill);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/bills/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // Optional: Check if associated payments exist and warn/block, but cascade might handle it or we just force delete
+    await prisma.bill.delete({ where: { id } });
+
+    await logAudit({
+      actorType: "ADMIN",
+      actorId: req.admin.id,
+      action: "BILL_DELETED",
+      metadata: { billId: id },
+    });
+
+    res.json({ message: "Bill deleted successfully" });
   } catch (error) {
     next(error);
   }

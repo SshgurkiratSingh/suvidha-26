@@ -367,9 +367,11 @@ export const paymentsAPI = {
     }
   },
 
-  bulkPay: async (billIds) => {
+  requestApproval: async (billIds) => {
     try {
-      const response = await api.post("/payments/bulk-pay", { billIds });
+      const response = await api.post("/payments/request-approval", {
+        billIds,
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -525,6 +527,48 @@ export const adminAPI = {
   getPayment: async (id) => {
     try {
       const response = await api.get(`/admin/payments/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  listBills: async () => {
+    try {
+      const response = await api.get("/admin/bills");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  createBill: async (payload) => {
+    try {
+      const response = await api.post("/admin/bills", payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  updateBill: async (id, payload) => {
+    try {
+      const response = await api.patch(`/admin/bills/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  deleteBill: async (id) => {
+    try {
+      const response = await api.delete(`/admin/bills/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  approvePayment: async (id, action = "APPROVE") => {
+    try {
+      const response = await api.post(`/admin/payments/${id}/approve`, {
+        action,
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
